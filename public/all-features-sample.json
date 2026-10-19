@@ -395,7 +395,7 @@
       {
         "title": "Mental Math Relay",
         "teamBased": true,
-        "description": "Pass answers along your team. Only the last player submits. Fewest mistakes wins, with completion time breaking ties.",
+        "description": "Pass answers along your team. Only the last player submits. Fastest completion wins. Each mistake costs half the clue value when results are shown.",
         "clues": [
           {
             "prompt": "Complete the mental math relay.",

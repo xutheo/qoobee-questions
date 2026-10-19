@@ -16,19 +16,51 @@ const ghost=category('Ghost Pokemon',[
 ['This generation IV electric/ghost pokemon was introduced in Diamond & Pearl with only one form. However, in Pokemon Platinum, it received additional forms dependent on the type of household appliance it possesses.','Rotom'],
 ['This ghost pokemon is named ゴースト (Gosuto) in Japanese, which translates to "Ghost". What is its English name?','Haunter']]);
 Object.assign(ghost.clues[0],{image:'data:image/png;base64,'+readFileSync('images-for-qb-questions/duskull.png').toString('base64'),imageAlt:'Identify this mystery Pokemon.'});
-const content=contentSchema.parse({name:'Jelley — Qoobee Questions',boards:[[
-category('Jelley',[
-['How many siblings does Jelley have?','1–1 (one each)'],
-['What year did Jelley get married?','2023'],
-["When are Jelley’s birthdays?",'May 3rd and August 1st'],
-['How many piplups are in the house (no stickers)?','20–30'],
-['Name the countries that Jelley traveled to this year? (100 points for each)','China, Canada, Italy, Greece, Spain, Croatia, France']]),
-category('Fire Emblem',[
-['This prince of Altea is known as the original hero of Fire Emblem and wields the legendary Falchion.','Marth'],
-['In most mainline Fire Emblem games, this mechanic gives swords an advantage over axes, spears an advantage over swords, and axes an advantage over spears.','Weapon Triangle'],
-['This Fire Emblem game introduced the time-traveling daughter of Chrom, who wears a distinctive purple mask and goes by the name “Marth.”','Awakening'],
-['In Fire Emblem: Three Houses, this former Adrestian emperor founded a church after defeating Nemesis in the War of Heroes.','Seiros'],
-['In Fire Emblem: The Blazing Blade, this character is the tactician whose gender and name can be customized by the player.','Mark']]),
+const content=contentSchema.parse({name:'Edward — Qoobee Questions',boards:[[
+category('Edward',[
+  [
+    "What is Ed's birthday?",
+    "August 2nd"
+  ],
+  [
+    "How many eggs did Ed eat in under 50 seconds?",
+    "12"
+  ],
+  [
+    "What Pokémon plush was in Ed's bedroom that he got from Japan?",
+    "Ditto"
+  ],
+  [
+    "What soft drink did Ed like / was known for as a kid?",
+    "Fanta"
+  ],
+  [
+    "What character is Ed's Steam profile picture?",
+    "Squidward"
+  ]
+]),
+category('Teamfight Tactics',[
+  [
+    "Without special bonuses, how much gold must you save to reach maximum base interest?",
+    "50 gold"
+  ],
+  [
+    "By combining copies, how many one-star copies of the same champion are needed to make a four-star champion?",
+    "27 / Twenty-seven"
+  ],
+  [
+    "What happens when you equip all three Tactician items — Crown, Cape, and Shield — on the same champion?",
+    "Infinite money / Infinite gold"
+  ],
+  [
+    "Which TFT set introduced Hextech Augments?",
+    "Gizmos & Gadgets / Gizmos and Gadgets / Set 6"
+  ],
+  [
+    "In the original Dragonlands set, a Dragon occupied two team slots but counted as how many units toward its marked origin trait?",
+    "3 / Three"
+  ]
+]),
 category('Homonyms',[
 ['Flying mammal found in caves; Piece of equipment found in baseball','Bat'],
 ['Financial institution; Land along a river','Bank'],
@@ -49,15 +81,31 @@ category('Qoobee Questions',[
 ['This chemical element is known as Sn on the periodic table with atomic number 50. It is commonly used to coat steel cans for food, beverages, and oils.','Tin'],
 ['This quantum version of the classic binary bit is the basic building block of quantum computers, allowing them to perform certain types of calculations in ways that classical computers cannot.','Qubit'],
 ['Derived from a Latin word meaning "everywhere," this ten-letter adjective describes something that seems to be present or encountered in all places at once.','Ubiquitous']]),
-category('Civ 5 Wonders',[
-['Stretching thousands of miles across northern China, this massive defensive structure was built and rebuilt over centuries to protect Chinese states and empires from invasions.','The Great Wall of China'],
-['Mughal emperor Shah Jahan commissioned this white marble mausoleum in the 17th century to honor his beloved wife, Mumtaz Mahal.','Taj Mahal'],
-['This palace and fortress complex in Granada, Spain, was developed primarily under the Nasrid dynasty and is celebrated for its intricate geometric tilework, carved stucco, and elaborate courtyards.','Alhambra'],
-['Built in the 15th century high in the Andes Mountains, this Incan citadel remained largely unknown to the outside world until American explorer Hiram Bingham brought it to international attention in 1911.','Machu Picchu'],
-['Built in the ancient city of Ephesus, in modern-day Turkey, this monumental sanctuary was destroyed by an arsonist named Herostratus in 356 BCE, reportedly in an attempt to achieve everlasting fame.','The Temple of Artemis']]),
+category('Magic: The Gathering',[
+  [
+    "Name all five colors of mana in Magic: The Gathering.",
+    "White, blue, black, red, and green"
+  ],
+  [
+    "In Commander, how many cards are in your deck, including your commander or commanders?",
+    "100 / One hundred"
+  ],
+  [
+    "Which keyword makes any nonzero amount of damage a source deals to a creature count as lethal damage?",
+    "Deathtouch"
+  ],
+  [
+    "Which keyword lets you cast an instant or sorcery from your graveyard for an alternative cost, then exiles it when it leaves the stack?",
+    "Flashback"
+  ],
+  [
+    "Which keyword action lets you choose any number of permanents and/or players with counters, then give each another counter of every kind it already has?",
+    "Proliferate"
+  ]
+]),
 {...sample.boards[1][4],title:'Pixel Perfect'},
 {title:'Bomb Defusal',teamBased:true,clues:bombs.map(puzzle=>({prompt:puzzle.message,answer:'',used:false,kind:'group',groupMode:'time',linkLabel:'Bomb defusal',puzzle}))}
-]],final:{category:'',prompt:'',answer:''}});
+]],final:{"category":"Seattle","prompt":"Seattle is known by this colorful nickname, inspired by the lush evergreen scenery surrounding the city.","answer":"Emerald City"}});
 if(content.boards.some(board=>board.length!==5||board.some(c=>c.clues.some(q=>!isClueReady(q)))))throw Error('Invalid clues');
 writeFileSync('exports/jelley-qoobee-questions.json',JSON.stringify(content,null,2));
-console.log('Validated 2 boards, 5 categories each, 50 ready clues. Embedded Duskull and five Pixel Perfect images. Final Jeopardy left blank.');
+console.log('Validated 2 boards, 5 categories each, 50 ready clues. Embedded Duskull and five Pixel Perfect images. Seattle Final Jeopardy included.');

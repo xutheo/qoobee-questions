@@ -82,7 +82,7 @@ test('player snapshots omit private answers, credentials, rotation queues, and c
   assert.equal(view.boards[0][0].clues[0].answer, ''); assert.equal(view.boards[0][0].clues[1].prompt, ''); assert.equal(view.final.answer, '');
   const json = JSON.stringify(view); assert.ok(!json.includes('tokenHash')); assert.ok(!json.includes('hostHash')); assert.ok(!json.includes('processed')); assert.ok(!json.includes('queue'));
 });
-test('Final Jeopardy validates wagers, keeps them private, times out and applies each score once', () => {
+test('Final Jeopardy validates wagers, keeps them private, waits for host closure and applies each score once', () => {
   const f = fixture(1), g = f.g;
   f.command('adjust-score', { teamId: g.teams[0].id, amount: 500, reason: 'Fixture' });
   f.command('advance-board', { skip: true }); f.command('advance-board', { skip: true });
@@ -93,7 +93,7 @@ test('Final Jeopardy validates wagers, keeps them private, times out and applies
   assert.equal(publicView(g, b, f.online, 0, null).finalEntries[g.teams[0].id].wager, null);
   assert.equal(publicView(g, host, f.online, 0, null).finalEntries[g.teams[0].id].wager, null);
   f.command('lock-wagers', {}, 1000); f.command('final-answer', { answer: 'Africa' }, 10000, a);
-  assert.throws(() => f.command('final-answer', { answer: 'Late' }, 31000, b), /Only the captain/);
+  f.command('final-answer', { answer: 'Still open' }, 31000, b); assert.equal(g.finalDeadline,null); f.command('lock-answers',{},31500);
   f.command('judge-final', { teamId: g.teams[0].id, correct: true }, 32000);
   assert.equal(g.teams[0].score, 900);
   assert.throws(() => f.command('judge-final', { teamId: g.teams[0].id, correct: true }, 32000), /already judged/);
@@ -479,10 +479,10 @@ test('Pixel Perfect supports whole-team buzzing and rejects missing images and i
 });
 
 test('host collects private answers from all teams and awards points manually',()=>{
- const f=fixture(2),{g,command,online}=f;g.boards[0][0].openToAll=true;open(f);
+ const f=fixture(2),{g,command,online}=f;g.boards[0][0].openToAll=true;g.boards[0][0].collectAnswers=true;open(f);
  const attemptId=g.current!.id,player={role:'player' as const,playerId:g.players[0].id};
  assert.throws(()=>command('collect-team-answers',{},1100,player));
- command('collect-team-answers',{},1100);
+
  assert.equal(g.current!.group!.teamAnswers,true);
  for(const p of g.players) command('submit-group',{attemptId,score:'answer '+p.id},1200,{role:'player',playerId:p.id});
  assert.equal(Object.keys(g.current!.group!.submissions).length,4);
@@ -505,4 +505,16 @@ test('host can skip remaining clues to next board and final',()=>{
  command('advance-board',{skip:true});assert.equal(g.board,1);assert.equal(g.introCategory,0);
  assert.ok(g.boards[0].every(c=>c.clues.every(q=>q.used)));
  command('advance-board',{skip:true});assert.equal(g.phase,'final-wager');
+});
+
+test('host can reopen locked buzzers without changing previous scores',()=>{
+ const f=fixture(1);open(f);const {g,command}=f;const player=representative(g);
+ command('buzz',{attemptId:g.current!.id},2000,player);command('judge',{buzzId:g.current!.buzzId,correct:false},3000);
+ assert.equal(g.teams[0].score,-100);assert.throws(()=>command('reopen-buzzers',{},4000,player));
+ command('reopen-buzzers',{},4000);assert.equal(g.current!.state,'open');assert.equal(g.teams[0].score,-100);
+ command('buzz',{attemptId:g.current!.id},4001,player);assert.equal(g.current!.winner,player.playerId);
+});
+test('only host controls stream music, including while paused',()=>{
+ const {g,command}=fixture();assert.throws(()=>command('set-music',{playing:true},0,{role:'player',playerId:g.players[0].id}));
+ command('set-music',{playing:true});assert.equal(g.musicPlaying,true);command('pause');command('set-music',{playing:false});assert.equal(g.musicPlaying,false);
 });

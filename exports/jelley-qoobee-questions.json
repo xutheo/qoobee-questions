@@ -1,63 +1,63 @@
 {
-  "name": "Jelley — Qoobee Questions",
+  "name": "Edward — Qoobee Questions",
   "boards": [
     [
       {
-        "title": "Jelley",
+        "title": "Edward",
         "clues": [
           {
-            "prompt": "How many siblings does Jelley have?",
-            "answer": "1–1 (one each)",
+            "prompt": "What is Ed's birthday?",
+            "answer": "August 2nd",
             "used": false
           },
           {
-            "prompt": "What year did Jelley get married?",
-            "answer": "2023",
+            "prompt": "How many eggs did Ed eat in under 50 seconds?",
+            "answer": "12",
             "used": false
           },
           {
-            "prompt": "When are Jelley’s birthdays?",
-            "answer": "May 3rd and August 1st",
+            "prompt": "What Pokémon plush was in Ed's bedroom that he got from Japan?",
+            "answer": "Ditto",
             "used": false
           },
           {
-            "prompt": "How many piplups are in the house (no stickers)?",
-            "answer": "20–30",
+            "prompt": "What soft drink did Ed like / was known for as a kid?",
+            "answer": "Fanta",
             "used": false
           },
           {
-            "prompt": "Name the countries that Jelley traveled to this year? (100 points for each)",
-            "answer": "China, Canada, Italy, Greece, Spain, Croatia, France",
+            "prompt": "What character is Ed's Steam profile picture?",
+            "answer": "Squidward",
             "used": false
           }
         ]
       },
       {
-        "title": "Fire Emblem",
+        "title": "Teamfight Tactics",
         "clues": [
           {
-            "prompt": "This prince of Altea is known as the original hero of Fire Emblem and wields the legendary Falchion.",
-            "answer": "Marth",
+            "prompt": "Without special bonuses, how much gold must you save to reach maximum base interest?",
+            "answer": "50 gold",
             "used": false
           },
           {
-            "prompt": "In most mainline Fire Emblem games, this mechanic gives swords an advantage over axes, spears an advantage over swords, and axes an advantage over spears.",
-            "answer": "Weapon Triangle",
+            "prompt": "By combining copies, how many one-star copies of the same champion are needed to make a four-star champion?",
+            "answer": "27 / Twenty-seven",
             "used": false
           },
           {
-            "prompt": "This Fire Emblem game introduced the time-traveling daughter of Chrom, who wears a distinctive purple mask and goes by the name “Marth.”",
-            "answer": "Awakening",
+            "prompt": "What happens when you equip all three Tactician items — Crown, Cape, and Shield — on the same champion?",
+            "answer": "Infinite money / Infinite gold",
             "used": false
           },
           {
-            "prompt": "In Fire Emblem: Three Houses, this former Adrestian emperor founded a church after defeating Nemesis in the War of Heroes.",
-            "answer": "Seiros",
+            "prompt": "Which TFT set introduced Hextech Augments?",
+            "answer": "Gizmos & Gadgets / Gizmos and Gadgets / Set 6",
             "used": false
           },
           {
-            "prompt": "In Fire Emblem: The Blazing Blade, this character is the tactician whose gender and name can be customized by the player.",
-            "answer": "Mark",
+            "prompt": "In the original Dragonlands set, a Dragon occupied two team slots but counted as how many units toward its marked origin trait?",
+            "answer": "3 / Three",
             "used": false
           }
         ]
@@ -340,31 +340,31 @@
         ]
       },
       {
-        "title": "Civ 5 Wonders",
+        "title": "Magic: The Gathering",
         "clues": [
           {
-            "prompt": "Stretching thousands of miles across northern China, this massive defensive structure was built and rebuilt over centuries to protect Chinese states and empires from invasions.",
-            "answer": "The Great Wall of China",
+            "prompt": "Name all five colors of mana in Magic: The Gathering.",
+            "answer": "White, blue, black, red, and green",
             "used": false
           },
           {
-            "prompt": "Mughal emperor Shah Jahan commissioned this white marble mausoleum in the 17th century to honor his beloved wife, Mumtaz Mahal.",
-            "answer": "Taj Mahal",
+            "prompt": "In Commander, how many cards are in your deck, including your commander or commanders?",
+            "answer": "100 / One hundred",
             "used": false
           },
           {
-            "prompt": "This palace and fortress complex in Granada, Spain, was developed primarily under the Nasrid dynasty and is celebrated for its intricate geometric tilework, carved stucco, and elaborate courtyards.",
-            "answer": "Alhambra",
+            "prompt": "Which keyword makes any nonzero amount of damage a source deals to a creature count as lethal damage?",
+            "answer": "Deathtouch",
             "used": false
           },
           {
-            "prompt": "Built in the 15th century high in the Andes Mountains, this Incan citadel remained largely unknown to the outside world until American explorer Hiram Bingham brought it to international attention in 1911.",
-            "answer": "Machu Picchu",
+            "prompt": "Which keyword lets you cast an instant or sorcery from your graveyard for an alternative cost, then exiles it when it leaves the stack?",
+            "answer": "Flashback",
             "used": false
           },
           {
-            "prompt": "Built in the ancient city of Ephesus, in modern-day Turkey, this monumental sanctuary was destroyed by an arsonist named Herostratus in 356 BCE, reportedly in an attempt to achieve everlasting fame.",
-            "answer": "The Temple of Artemis",
+            "prompt": "Which keyword action lets you choose any number of permanents and/or players with counters, then give each another counter of every kind it already has?",
+            "answer": "Proliferate",
             "used": false
           }
         ]
@@ -570,8 +570,8 @@
     ]
   ],
   "final": {
-    "category": "",
-    "prompt": "",
-    "answer": ""
+    "category": "Seattle",
+    "prompt": "Seattle is known by this colorful nickname, inspired by the lush evergreen scenery surrounding the city.",
+    "answer": "Emerald City"
   }
 }

@@ -12,7 +12,7 @@ export const clueSchema = z.object({
 });
 export type ClueData = z.infer<typeof clueSchema>;
 export const isClueReady = (q: ClueData) => !!q.prompt.trim() && (q.kind === 'group' ? q.puzzle ? puzzleReady(q.puzzle) && !q.boost : !!q.link && gameLinkSchema.safeParse(q.link).success && !q.boost : !!q.answer.trim());
-export const categorySchema = z.object({ pixelPerfect: z.boolean().optional(), teamBased: z.boolean().optional(), openToAll: z.boolean().optional(), title: z.string().max(100), description: z.string().max(2000).optional(), clues: z.array(clueSchema).length(5) });
+export const categorySchema = z.object({ collectAnswers: z.boolean().optional(), pixelPerfect: z.boolean().optional(), teamBased: z.boolean().optional(), openToAll: z.boolean().optional(), title: z.string().max(100), description: z.string().max(2000).optional(), clues: z.array(clueSchema).length(5) });
 export const boardSchema = z.array(categorySchema).min(5).max(6);
 export const contentSchema = z.object({
   name: z.string().trim().min(1).max(100), boards: z.array(boardSchema).length(2),
@@ -32,6 +32,7 @@ const currentSchema = z.object({
   group: z.object({
     puzzle: puzzleStateSchema.optional(), status: z.enum(['ready', 'playing', 'review']), mode: z.enum(['time', 'score']),
     elapsedMs: z.number().nonnegative(), runningSince: z.number().nullable(),
+    timeLimitMs: z.number().positive().optional(), penalties: z.record(z.number()).optional(),
     teamAnswers: z.boolean().optional(),
     submissions: z.record(z.object({ score: z.string().max(100).nullable(), seconds: z.number().nonnegative().nullable(), submittedAt: z.string(), revision: z.number().int().positive() })),
     selectorBeforeAwards: z.string().nullable().optional(),
@@ -46,6 +47,7 @@ export const gameSchema = contentSchema.extend({
   phase: z.enum(['lobby', 'board', 'final-wager', 'final-answer', 'final-judge', 'finished']),
   board: z.number().int().min(0).max(1), teams: z.array(teamSchema).min(2).max(12), players: z.array(playerSchema).max(100),
   nextRepresentatives: z.record(z.string()).optional(),
+  musicPlaying: z.boolean().optional(),
   instructionsVisible: z.boolean().optional(),
   introCategory: z.number().int().min(0).max(5).nullable().optional(), selectorTeamId: z.string().nullable().optional(),
   current: currentSchema.nullable(), paused: z.boolean(), recovery: z.string().nullable(),

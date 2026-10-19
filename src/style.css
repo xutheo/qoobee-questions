@@ -238,3 +238,14 @@
 
 .wire-5{--wire:#ffa44f}.wire-6{--wire:#f5f5f5}.wire-7{--wire:#f69bc8}
 .wire-8{--wire:#52dce5}.wire-9{--wire:#df5cde}.wire-10{--wire:#333333}.wire-11{--wire:#b58050}
+.animated-score{position:relative;display:inline-block}.score-change{position:absolute;bottom:100%;left:50%;white-space:nowrap;font-weight:900;font-size:1.35em;pointer-events:none;animation:score-float 2.4s ease-out forwards}.score-change.positive{color:#69f2a3}.score-change.negative{color:#ff7373}@keyframes score-float{0%{opacity:0;transform:translate(-50%,10px) scale(.6)}15%{opacity:1;transform:translate(-50%,-5px) scale(1.15)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-45px)}}.host-music{display:flex;justify-content:flex-end;align-items:center;gap:12px;margin:12px 0}.stream-audio-controls{max-width:280px;background:#102030;padding:8px;border-radius:8px;font-size:14px}.stream-audio-controls label,.stream-audio-controls small{display:block}.activity-countdown{font-size:clamp(24px,3vw,48px);font-variant-numeric:tabular-nums;color:#f4c766;text-align:center}@media(prefers-reduced-motion:reduce){.score-change{animation:none;transform:translateX(-50%)}}
+/* Fit the complete clue, including its answer, to the real remaining viewport. */
+.stream-question{min-width:0;overflow:hidden}
+.stream-clue-body{position:relative;display:block;overflow:hidden;min-width:0;min-height:0}
+.stream-clue-fit{position:absolute;top:50%;left:50%;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;transform-origin:center;overflow-wrap:anywhere}
+.stream-clue-fit>*{flex-shrink:0;max-width:100%;box-sizing:border-box}
+.stream-clue-fit h1,.stream-clue-fit p,.stream-clue-fit .stream-answer{overflow-wrap:anywhere;white-space:pre-wrap}
+.stream-question .stream-clue-footer{min-height:0}
+.stream-screen:not(.stream-lobby) .stream-scores{flex:none;flex-wrap:nowrap;min-width:0}
+.stream-screen:not(.stream-lobby) .stream-scores>div{min-width:0}
+@media(max-height:650px){.stream-screen{padding:6px;gap:5px}.stream-question{margin:4px;padding:8px;gap:4px!important}.stream-question>.stream-category{padding:2px}.stream-scores{padding:2px}.stream-scores>div{padding:3px}.stream-team-members{font-size:12px}}

@@ -226,3 +226,24 @@ test('relays allocate at least four steps fairly and only the final step owner s
   assert.equal(team.finishedMs,1000);
  }
 });
+
+test('puzzle penalties apply on review, undo cleanly, and never double charge',()=>{
+ const {g,team,cmd,payload}=setup('bomb');team.mistakes=2;
+ assert.equal(g.teams[0].score,0);cmd('lock-group',payload,2000);assert.equal(g.teams[0].score,-100);
+ cmd('undo-end-group',payload,3000);assert.equal(g.teams[0].score,0);
+ team.mistakes=3;cmd('lock-group',payload,4000);assert.equal(g.teams[0].score,-150);
+ cmd('close-clue',{},5000);assert.equal(g.teams[0].score,-150);
+ assert.ok(validateGame(g));
+});
+test('bomb and relay expire after three minutes of active time and deduct mistakes once',async()=>{
+ const {advanceTimers}=await import('../server/game');
+ for(const type of ['bomb','relay'] as const){
+  const {g,team,cmd,payload}=setup(type);team.mistakes=1;
+  assert.equal(g.current!.group!.timeLimitMs,180000);
+  cmd('pause',{},61000);advanceTimers(g,161000);assert.equal(g.current!.group!.elapsedMs,60000);
+  cmd('resume',{},161000);advanceTimers(g,280999);assert.equal(g.current!.group!.status,'playing');
+  advanceTimers(g,281000);assert.equal(g.current!.group!.status,'review');assert.equal(g.teams[0].score,-50);
+  advanceTimers(g,300000);assert.equal(g.teams[0].score,-50);
+  assert.throws(()=>cmd('undo-end-group',payload,300000),/expired/);
+ }
+});

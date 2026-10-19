@@ -340,3 +340,79 @@ test('mental math relay broadcasts expressions and only final players submit wit
   await stream.close();
  }finally{await Promise.all(contexts.map(c=>c.close()));}
 });
+
+test('completed game can return home and create and edit another game', async ({page,request})=>{
+ const {newGame,applyCommand}=await import('../server/game');
+ const {sampleContent}=await import('../shared/sample');
+ const {randomUUID}=await import('node:crypto');
+ const g=newGame('test-secret');Object.assign(g,sampleContent());
+ g.players.push({id:'test-player',name:'Tester',teamId:g.teams[0].id,tokenHash:'',active:true,selections:0});
+ g.players.push({id:'test-other',name:'Other',teamId:g.teams[1].id,tokenHash:'',active:true,selections:0});
+ const online=new Set(['test-player','test-other']);
+ const command=(type:string,payload={})=>applyCommand(g,{role:'host'},{id:randomUUID(),type,payload},0,online);
+ command('start');command('advance-board',{skip:true});command('advance-board',{skip:true});
+ command('lock-wagers',{zeroMissing:true});command('lock-answers');
+ for(const team of g.teams)if(!g.finalEntries[team.id].judged)command('judge-final',{teamId:team.id,correct:false});
+ command('finish-final');
+ const response=await request.post('/api/import',{data:{exportVersion:1,game:g}});
+ expect(response.ok()).toBeTruthy();const session=await response.json();
+ await page.goto('/');await page.evaluate(s=>localStorage.setItem('quiz-social-sessions',JSON.stringify([s])),session);
+ await page.goto('/?game='+session.gameId+'&role=host');
+ await expect(page.locator('.finale')).toBeVisible();
+ await page.getByRole('button',{name:'Return home',exact:true}).click();
+ await page.getByRole('button',{name:'Host a game',exact:true}).click();
+ await page.getByLabel('Game name',{exact:true}).fill('Next game after finale');
+ await page.getByRole('button',{name:'Create game'}).click();
+ await expect(page.getByRole('heading',{name:'Next game after finale',exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Edit game boards'}).click();
+ await page.getByRole('button',{name:'Use sample questions'}).click();
+ await page.getByRole('button',{name:'Use sample collection'}).click();
+ await expect(page.getByText('All changes saved',{exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Save & close'}).click();
+ expect((await request.get('/api/health')).ok()).toBeTruthy();
+});
+
+
+test('host music, category submissions, activity clocks and score animations',async({page,request,browser})=>{
+ const {newGame}=await import('../server/game');const {allModesSampleContent}=await import('../shared/sample');
+ const g=newGame('test-secret');Object.assign(g,allModesSampleContent());g.phase='board';g.introCategory=null;g.instructionsVisible=false;
+ g.players=g.teams.map((t,i)=>({id:'p'+i,name:'P'+i,teamId:t.id,tokenHash:'',active:true,selections:0}));g.nextRepresentatives=Object.fromEntries(g.players.map(p=>[p.teamId,p.id]));
+ g.boards[0][4].collectAnswers=true;
+ const result=await request.post('/api/import',{data:{exportVersion:1,game:g}});expect(result.ok()).toBeTruthy();const session=await result.json();
+ await page.goto('/');await page.evaluate(s=>localStorage.setItem('quiz-social-sessions',JSON.stringify([s])),session);await page.goto('/?game='+session.gameId+'&role=host');
+ await page.getByRole('button',{name:'Resume game'}).click();
+ const stream=await browser.newPage();await stream.goto((await page.getByRole('link',{name:'Open streamed board'}).getAttribute('href'))!);
+ await stream.getByText('Audio settings',{exact:true}).click();await stream.getByRole('button',{name:'Enable sound'}).click();
+ await page.getByRole('button',{name:'Play music',exact:true}).click();await expect(stream.getByText(/Host has started music/)).toBeVisible();await page.getByRole('button',{name:'Stop music',exact:true}).click();
+ await page.getByRole('button',{name:'Team Questions, 100 points',exact:true}).click();
+ await expect(page.getByRole('button',{name:'Close submissions'})).toBeVisible();await expect(page.getByRole('button',{name:'Collect answers from all teams'})).toHaveCount(0);await expect(stream.locator('.stream-countdown')).toHaveCount(0);
+ await page.getByRole('button',{name:'Close submissions'}).click();
+ await page.getByRole('button',{name:'Award points to Qoobsters',exact:true}).click();await expect(stream.locator('.score-change.positive')).toContainText('+100');
+ await page.getByRole('button',{name:'Back to the board',exact:true}).click();
+ const again=await request.post('/api/import',{data:{exportVersion:1,game:g}});const second=await again.json();
+ await page.evaluate(s=>localStorage.setItem('quiz-social-sessions',JSON.stringify([s])),second);await page.goto('/?game='+second.gameId+'&role=host');await page.getByRole('button',{name:'Resume game'}).click();
+ await stream.goto((await page.getByRole('link',{name:'Open streamed board'}).getAttribute('href'))!);
+ await page.getByRole('button',{name:'Team Challenges, 100 points',exact:true}).click();await page.getByRole('button',{name:'Broadcast clues & start'}).click();
+ await expect(page.locator('.activity-countdown')).toContainText(/(?:3:00|2:59) remaining/);await expect(stream.locator('.activity-countdown')).toBeVisible();
+ await page.getByRole('button',{name:'End activity',exact:true}).click();await expect(stream.getByText(/Fastest completion wins/)).toBeVisible();await stream.close();
+});
+
+test('streamed image question and revealed answer fit at multiple viewport sizes',async({page,request,browser})=>{
+ const {newGame,applyCommand}=await import('../server/game');const {allModesSampleContent}=await import('../shared/sample');const {randomUUID}=await import('node:crypto');
+ const g=newGame('test-secret');Object.assign(g,allModesSampleContent());g.players=g.teams.map((t,i)=>({id:'fit'+i,name:'Fit'+i,teamId:t.id,tokenHash:'',active:true,selections:0}));const online=new Set(g.players.map(p=>p.id));
+ const command=(type:string,payload={})=>applyCommand(g,{role:'host'},{id:randomUUID(),type,payload},0,online);
+ g.boards[0][2].clues[0].prompt='Identify the character shown in this picture and describe the distinctive hat that the character is wearing.';
+ g.boards[0][2].clues[0].answer='Qoobee — the yellow character wearing a purple witch hat, decorated with a gold buckle. '+ 'This is an extended answer to check that the entire question, image and answer remain visible. '.repeat(5);
+ command('start');command('open-clue',{category:2,row:0});
+ const res=await request.post('/api/import',{data:{exportVersion:1,game:g}});expect(res.ok()).toBeTruthy();const session=await res.json();
+ await page.goto('/');await page.evaluate(s=>localStorage.setItem('quiz-social-sessions',JSON.stringify([s])),session);await page.goto('/?game='+session.gameId+'&role=host');
+ const stream=await browser.newPage();await stream.goto((await page.getByRole('link',{name:'Open streamed board'}).getAttribute('href'))!);
+ const assertFit=async()=>{await expect(stream.locator('.stream-clue-body')).toBeVisible();await expect.poll(()=>stream.evaluate(()=>{
+  const outer=document.querySelector('.stream-clue-body')!.getBoundingClientRect(),inner=document.querySelector('.stream-clue-fit')!.getBoundingClientRect();
+  return outer.height>30&&inner.top>=outer.top-1&&inner.bottom<=outer.bottom+1&&inner.left>=outer.left-1&&inner.right<=outer.right+1&&document.documentElement.scrollWidth<=innerWidth;
+ })).toBeTruthy();};
+ await assertFit();await page.getByRole('button',{name:'Resume game'}).click();await page.getByRole('button',{name:'Close clue and reveal answer'}).click();await expect(stream.locator('.stream-answer')).toBeVisible();
+ for(const size of [{width:1920,height:1080},{width:1366,height:768},{width:1280,height:720},{width:1024,height:600},{width:800,height:600}]){await stream.setViewportSize(size);await assertFit();}
+ await stream.evaluate(()=>document.body.classList.add('stage-mode'));await assertFit();await stream.close();
+});
+

@@ -48,6 +48,6 @@ export function allModesSampleContent(): Content {
   });
   content.boards[0][2] = pixelCategory(false);
   content.boards[1][4] = pixelCategory(true);
-  content.boards[1][2] = {title:'Mental Math Relay',teamBased:true,description:'Pass answers along your team. Only the last player submits. Fewest mistakes wins, with completion time breaking ties.',clues:[1,2,3,4,5].map(level=>({prompt:'Complete the mental math relay.',answer:'',used:false,kind:'group',groupMode:'time',linkLabel:'Mental Math Relay',puzzle:{...samplePuzzle('relay'),relayDifficulty:level,relayExpressions:sampleRelays[level-1]}}))};
+  content.boards[1][2] = {title:'Mental Math Relay',teamBased:true,description:'Pass answers along your team. Only the last player submits. Fastest completion wins. Each mistake costs half the clue value when results are shown.',clues:[1,2,3,4,5].map(level=>({prompt:'Complete the mental math relay.',answer:'',used:false,kind:'group',groupMode:'time',linkLabel:'Mental Math Relay',puzzle:{...samplePuzzle('relay'),relayDifficulty:level,relayExpressions:sampleRelays[level-1]}}))};
   return content;
 }

@@ -1,3 +1,4 @@
+import { statePatch } from '../shared/state-patch';
 import express from 'express';
 import { createServer } from 'node:http';
 import path from 'node:path';
@@ -28,7 +29,13 @@ for (const id of await store.listIds()) {
 }
 const online = (r: Room) => new Set([...r.sockets.values()].filter(a => a.role === 'player').map(a => a.playerId!));
 const hasHost = (r: Room) => [...r.sockets.values()].some(a => a.role === 'host');
-function emit(r: Room) { if (r.deleted) return; for (const [id, actor] of r.sockets) io.to(id).emit('state', publicView(r.game, actor, online(r), performance.now(), r.error)); }
+function sendState(r: Room, socket: Socket, actor: Actor, full = false) {
+  const view = publicView(r.game, actor, online(r), performance.now(), r.error);
+  if (socket.data.statePatches && socket.data.lastState && !full) socket.emit('state-patch', statePatch(socket.data.lastState, view));
+  else socket.emit('state', view);
+  if (socket.data.statePatches) socket.data.lastState = view;
+}
+function emit(r: Room) { if (r.deleted) return; for (const [id, actor] of r.sockets) { const socket = io.sockets.sockets.get(id); if (socket) sendState(r, socket, actor); } }
 function enqueue<T>(r: Room, fn: () => Promise<T>): Promise<T> { const task = r.queue.then(() => { if (r.deleted) throw new Error('The host deleted this game.'); return fn(); }); r.queue = task.catch(() => {}); return task; }
 function scheduleExpiry(r: Room) {
   clearTimeout(r.expiry);
@@ -126,10 +133,10 @@ app.post('/api/games/:id/retry-storage', async (req, res) => { const r = host(re
 
 io.use((socket, next) => { try {
   rate(`connect:${socket.handshake.address}`, 120);
-  const auth = z.object({ gameId: z.string().uuid(), token: z.string().max(128).optional(), role: z.enum(['host', 'player', 'display']), code: z.string().optional() }).parse(socket.handshake.auth);
+  const auth = z.object({ gameId: z.string().uuid(), token: z.string().max(128).optional(), role: z.enum(['host', 'player', 'display']), code: z.string().optional(), statePatches: z.boolean().optional() }).parse(socket.handshake.auth);
   const r = find(auth.gameId);
   const actor: Actor = auth.role === 'display' && auth.code === r.game.code ? { role: 'display' } : authenticate(r.game, auth.token || '');
-  socket.data.room = r; socket.data.actor = actor; next();
+  socket.data.statePatches = auth.statePatches === true; socket.data.room = r; socket.data.actor = actor; next();
 } catch (e: any) { next(new Error(e.message)); } });
 io.on('connection', (socket: Socket) => {
   const r: Room = socket.data.room, actor: Actor = socket.data.actor;
@@ -141,7 +148,7 @@ io.on('connection', (socket: Socket) => {
     advanceTimers(next, performance.now());
     if (fillMissingRepresentatives(next, online(r))) await commit(r, next);
   }).catch(console.error);
-  socket.on('sync', () => { if (!r.deleted) socket.emit('state', publicView(r.game, actor, online(r), performance.now(), r.error)); });
+  socket.on('sync', () => { if (!r.deleted) sendState(r, socket, actor, true); });
   socket.on('command', (raw: unknown, ack: (value: unknown) => void) => {
     if (typeof ack !== 'function') return;
     const received = performance.now();
