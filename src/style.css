@@ -275,3 +275,9 @@
 .stream-column.team-submission-category h2,
 .stream-column.team-submission-category .stream-tile{border:2px solid #69d391}
 .stream-category-intro.team-submission-intro{border-color:#69d391}
+.stream-question.quote-question{width:min(88%,1100px);height:85%;max-height:85%;margin:auto;align-self:center;justify-self:center}
+.stream-question .quote-list{max-width:850px;margin:0 auto}
+.stream-question.quote-question h1{font-size:clamp(24px,3vw,46px)}
+.host-quote-preview .current-quote{outline:2px solid var(--gold);border-radius:8px}
+.host-quote-preview .quote-image{max-height:220px}
+@media(max-width:650px){.stream-question.quote-question{width:96%;height:92%;max-height:92%}}

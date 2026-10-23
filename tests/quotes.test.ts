@@ -32,3 +32,8 @@ test('quotes support multiline text, image-only entries and one image per curren
   assert.doesNotMatch(third,/<img/);
   assert.equal(clueSchema.safeParse({...clue,quotes:[{text:'',source:'',image:'javascript:alert(1)'},...clue.quotes.slice(1)]}).success,false);
 });
+
+test('host quote preview shows all three while streamed view shows only selected quote',()=>{
+ const host=renderToStaticMarkup(React.createElement(QuoteList,{clue,count:2,showAll:true}));
+ assert.match(host,/First quote/);assert.match(host,/Second quote/);assert.match(host,/Third quote/);assert.match(host,/current-quote/);
+});

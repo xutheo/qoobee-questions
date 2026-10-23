@@ -49,7 +49,7 @@ export function StreamIntro({ v }: {v:View}) {
  },[incoming,shown,v.board]);
  if(shown===null)return null;
  const cat=v.boards[v.board][shown];
- return <div className={"stream-category-intro" + (cat.openToAll && cat.collectAnswers ? " team-submission-intro" : cat.openToAll ? " open-team-intro" : cat.teamBased ? " team-based-intro" : "")} ref={panel} key={v.board+'-'+shown}><span>BOARD {v.board+1} · CATEGORY {shown+1} OF {v.boards[v.board].length}</span><h1>{cat.title}</h1><p>{cat.description}</p></div>;
+ return <div className={"stream-category-intro" + (cat.collectAnswers ? " team-submission-intro" : cat.openToAll ? " open-team-intro" : cat.teamBased ? " team-based-intro" : "")} ref={panel} key={v.board+'-'+shown}><span>BOARD {v.board+1} · CATEGORY {shown+1} OF {v.boards[v.board].length}</span><h1>{cat.title}</h1><p>{cat.description}</p></div>;
 }
 
 export function GameInstructions() {

@@ -45,7 +45,7 @@ export function selectRepresentatives(g: Game, online: Set<string>, onlyTeam?: s
 // Reconnecting to a team that had nobody online must restore its restricted-round opportunity.
 export function fillMissingRepresentatives(g: Game, online: Set<string>) {
   const c = g.current;
-  if (g.phase !== 'board' || c && (c.group || !['restricted', 'revealed'].includes(c.state))) return false;
+  if (g.phase !== 'board' || c && (c.group && !c.group.teamAnswers || !['restricted', 'revealed'].includes(c.state))) return false;
   const representatives = c ? c.representatives : (g.nextRepresentatives ??= {});
   let changed = false;
   for (const team of g.teams) {
@@ -213,9 +213,12 @@ export function applyCommand(g: Game, actor: Actor, command: Command, now: numbe
         ...(g.boards[g.board][p.category].pixelPerfect ? { pixel: { elapsedMs: 0, runningSince: now } } : {}),
         ...(clue.quotes ? { quotesRevealed: 1 } : {}),
         ...(clue.boost ? { boost: null } : {}), ...(clue.kind === 'group' ? { group: { status: 'ready', mode: clue.groupMode ?? 'time', elapsedMs: 0, runningSince: null, submissions: {}, awards: {} } } : {}) };
-      if (g.boards[g.board][p.category].openToAll && g.boards[g.board][p.category].collectAnswers && clue.kind !== 'group' && !clue.boost) { g.current.state = 'revealed'; g.current.deadline = null; g.current.group = {teamAnswers:true,submissionScope:'team',status:'playing',mode:'score',elapsedMs:0,runningSince:now,submissions:{},awards:{}}; }
+      if (g.boards[g.board][p.category].collectAnswers && clue.kind !== 'group' && !clue.boost) { g.current.state = 'revealed'; g.current.deadline = null; g.current.group = {teamAnswers:true,submissionScope:'team',status:'playing',mode:'score',elapsedMs:0,runningSince:now,submissions:{},awards:{}}; }
       break;
     }
+    case 'previous-quote':
+      requireRule(c && activeClue?.quotes && p.attemptId === c.id && p.revealed === (c.quotesRevealed ?? 1) && (c.quotesRevealed ?? 1) > 1, 'No previous quote available.');
+      c.quotesRevealed = (c.quotesRevealed ?? 1) - 1; g.undo = null; break;
     case 'reveal-quote':
       requireRule(c && activeClue?.quotes && p.attemptId === c.id && p.revealed === (c.quotesRevealed ?? 1), 'This quote reveal is out of date.');
       requireRule((c.quotesRevealed ?? 1) < 3, 'All quotes are already revealed.');
@@ -245,13 +248,20 @@ export function applyCommand(g: Game, actor: Actor, command: Command, now: numbe
     }
     case 'unfinish-group': {
       requireRule(!activeClue?.puzzle && player && c?.group?.status === 'playing' && c.state !== 'resolved' && p.attemptId === c.id, 'This activity is not accepting changes.');
+      if(c.group.teamAnswers) requireRule(c.representatives[player.teamId] === player.id, 'Only your designated team submitter can change the answer.');
       const key = c.group.submissionScope === 'team' ? player.teamId : player.id;
       requireRule(Object.hasOwn(c.group.submissions, key), 'No result to undo.');
       delete c.group.submissions[key]; break;
     }
+    case 'set-team-submitter': {
+      requireRule(c?.group?.teamAnswers && c.group.status === 'playing' && p.attemptId === c.id, 'No shared submissions are open.');
+      const selected = g.players.find(x=>x.id===p.playerId && x.teamId===p.teamId && x.active);
+      requireRule(selected, 'Choose an active team member.'); c.representatives[p.teamId] = selected.id; break;
+    }
     case 'submit-group': {
       requireRule(player && c?.group?.mode === 'score' && c.group.status === 'playing' && c.state !== 'resolved' && p.attemptId === c.id, 'Score submissions are closed.');
       requireRule(typeof p.score === 'string' && p.score.trim().length > 0 && p.score.length <= 100, 'Enter a score up to 100 characters.');
+      if(c.group.teamAnswers) requireRule(c.representatives[player.teamId] === player.id, 'Only your designated team submitter can change the answer.');
       const key = c.group.submissionScope === 'team' ? player.teamId : player.id;
       c.group.submissions[key] = { score: p.score.trim(), seconds: null, submittedAt: new Date().toISOString(), revision: (c.group.submissions[key]?.revision ?? 0) + 1 }; break;
     }
