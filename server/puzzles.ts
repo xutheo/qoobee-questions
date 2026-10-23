@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import type { Game, Player, View, Actor } from '../shared/model';
 function check(value: unknown, message: string): asserts value { if (!value) throw new Error(message); }
 export function startPuzzle(g: Game, representatives: Record<string,string>) {
-  const c = g.current!, group = c.group!, config = g.boards[g.board][c.category].clues[c.row].puzzle!;
+  const c = g.current!, group = c.group!, config = (c.exampleClue ?? g.boards[g.board][c.category].clues[c.row]).puzzle!;
   group.puzzle = { teams: {} };
   const usedColors = new Set<string>();
   for (const team of g.teams) {
@@ -18,7 +18,7 @@ export function startPuzzle(g: Game, representatives: Record<string,string>) {
       for(let i=order.length-1;i>0;i--){const j=randomInt(i+1);[order[i],order[j]]=[order[j],order[i]];}
       const membersInOrder = [...order];
       while (order.length < 4) order.push(membersInOrder[order.length % membersInOrder.length]);
-      const generated = config.relayExpressions && order.length === 4 && Object.keys(group.puzzle.teams).length === 0 ? fixedRelay(config.relayExpressions) : makeRelay(order.length, Object.keys(group.puzzle.teams).length, config.relayDifficulty || 2, config.relayOperations || ['multiply','subtract','divide','add']);
+      const generated = c.example ? fixedRelay(order.map((_,i)=>i===0?'2 + 3':['__ + 2','__ − 1','__ + 3','__ − 2'][(i-1)%4])) : config.relayExpressions && order.length === 4 && Object.keys(group.puzzle.teams).length === 0 ? fixedRelay(config.relayExpressions) : makeRelay(order.length, Object.keys(group.puzzle.teams).length, config.relayDifficulty || 2, config.relayOperations || ['multiply','subtract','divide','add']);
       order.forEach((id,i) => assignments[id].push(generated.expressions[i]));
       group.puzzle.teams[team.id] = { operator: order[order.length-1], assignments, relay: {order,answer:generated.answer}, mistakes:0,progress:[],finishedMs:null,lockedUntil:0 };
       continue;
@@ -31,7 +31,7 @@ export function startPuzzle(g: Game, representatives: Record<string,string>) {
   }
 }
 export function submitPuzzle(g: Game, player: Player | undefined, p: any) {
-  const c = g.current, group = c?.group, config = c && g.boards[g.board][c.category].clues[c.row].puzzle;
+  const c = g.current, group = c?.group, config = c && (c.exampleClue ?? g.boards[g.board][c.category].clues[c.row]).puzzle;
   check(player && group?.puzzle && config && group.status === 'playing' && c?.state !== 'resolved' && p.attemptId === c?.id, 'This puzzle is not accepting answers.');
   const team = group.puzzle.teams[player.teamId];
   check(team && team.operator === player.id, 'Only your team operator can submit.');

@@ -85,7 +85,7 @@ test('player snapshots omit private answers, credentials, rotation queues, and c
 test('Final Jeopardy validates wagers, keeps them private, waits for host closure and applies each score once', () => {
   const f = fixture(1), g = f.g;
   f.command('adjust-score', { teamId: g.teams[0].id, amount: 500, reason: 'Fixture' });
-  f.command('advance-board', { skip: true }); f.command('advance-board', { skip: true });
+  f.command('advance-board', { skip: true }); f.command('end-intermission'); f.command('advance-board', { skip: true });
   const a: Actor = { role: 'player', playerId: g.teams[0].captain! }, b: Actor = { role: 'player', playerId: g.teams[1].captain! };
   assert.throws(() => f.command('wager', { amount: 2001 }, 0, a), /Wager/);
   f.command('wager', { amount: 2000 }, 0, a); assert.equal(g.finalEntries[g.teams[0].id].wager, 2000);
@@ -169,7 +169,7 @@ test('automatic countdown, answer reveal and board progression preserve final an
   for (const cat of g.boards[0]) for (const q of cat.clues) q.used = true;
   assert.equal(g.board, 0); // The answer remains visible until dismissed.
   command('return-board', {}, 4000); assert.equal(g.board, 1); assert.equal(g.current, null);
-  command('open-clue', { category: 0, row: 0 }, 5000); command('close-clue', {}, 5500);
+  command('end-intermission',{},4500); command('open-clue', { category: 0, row: 0 }, 5000); command('close-clue', {}, 5500);
   for (const cat of g.boards[1]) for (const q of cat.clues) q.used = true;
   command('return-board', {}, 6000); assert.equal(g.phase, 'final-wager'); assert.equal(Object.keys(g.finalEntries).length, 2);
 });
@@ -227,7 +227,7 @@ test('empty teams disappear from live views and cannot block Final Jeopardy', ()
   assert.equal(publicView(g, host, online, 0, null).teams.length, 3);
   command('start'); assert.equal(publicView(g, host, online, 0, null).teams.length, 2);
   assert.equal(publicView(g, { role: 'display' }, online, 0, null).teams.length, 2);
-  command('advance-board', { skip: true }); command('advance-board', { skip: true });
+  command('advance-board', { skip: true }); command('end-intermission'); command('advance-board', { skip: true });
   assert.equal(g.finalEntries[g.teams[2].id].wager, 0); assert.equal(g.finalEntries[g.teams[2].id].judged, true);
 });
 
@@ -301,7 +301,7 @@ test('Final wagers allow 2000 for negative scores and larger positive balances',
   for (const balance of [-100, 0, 100, 3000]) {
     const f = fixture(1), g = f.g, team = g.teams[0];
     f.command('adjust-score', { teamId: team.id, amount: balance, reason: 'Fixture' });
-    f.command('advance-board', { skip: true }); f.command('advance-board', { skip: true });
+    f.command('advance-board', { skip: true }); f.command('end-intermission'); f.command('advance-board', { skip: true });
     const actor: Actor = { role: 'player', playerId: team.captain! }, maximum = Math.max(2000, balance);
     f.command('wager', { amount: maximum }, 0, actor);
     assert.equal(g.finalEntries[team.id].wager, maximum);
@@ -504,7 +504,7 @@ test('host can skip remaining clues to next board and final',()=>{
  assert.throws(()=>command('advance-board',{skip:true},0,{role:'player',playerId:g.players[0].id}));
  command('advance-board',{skip:true});assert.equal(g.board,1);assert.equal(g.introCategory,0);
  assert.ok(g.boards[0].every(c=>c.clues.every(q=>q.used)));
- command('advance-board',{skip:true});assert.equal(g.phase,'final-wager');
+ command('end-intermission'); command('advance-board',{skip:true});assert.equal(g.phase,'final-wager');
 });
 
 test('host can reopen locked buzzers without changing previous scores',()=>{
@@ -620,4 +620,84 @@ test('shared submissions work independently of whole-team buzzing',()=>{
  const id=f.g.current!.representatives[f.g.teams[0].id];
  f.command('submit-group',{attemptId:f.g.current!.id,score:'Answer'},1000,{role:'player',playerId:id});
  assert.equal(f.g.current!.group!.submissions[f.g.teams[0].id].score,'Answer');
+});
+
+test('intermission blocks progression until host continues and controls music',()=>{
+ const {g,command}=fixture();command('advance-board',{skip:true});assert.equal(g.intermission,true);assert.equal(g.musicPlaying,true);
+ assert.throws(()=>command('open-clue',{category:0,row:0}));assert.throws(()=>command('advance-board',{skip:true}));
+ command('end-intermission');assert.equal(g.musicPlaying,false);command('open-clue',{category:0,row:0});
+});
+test('gold podium gives second half points without stealing selection and prevents duplicate places',()=>{
+ const {g,command}=fixture();g.boards[0][0].teamBased=true;g.boards[0][0].clues[0]={prompt:'Activity',answer:'',used:false,kind:'group',link:'https://example.com'};
+ command('open-clue',{category:0,row:0});const attemptId=g.current!.id;command('start-group',{attemptId});assert.equal(g.musicPlaying,true);command('lock-group',{attemptId});assert.equal(g.musicPlaying,false);
+ g.autoSounds=true;command('award-group',{attemptId,teamId:g.teams[0].id,place:1});command('award-group',{attemptId,teamId:g.teams[1].id,place:2});
+ assert.deepEqual(g.teams.map(t=>t.score),[100,50]);assert.equal(g.selectorTeamId,g.teams[0].id);assert.equal(g.soundCue?.kind,'applause');assert.throws(()=>command('award-group',{attemptId,teamId:g.teams[1].id,place:1}));
+ assert.equal(gameSchema.parse(g).current!.group!.awards['team:'+g.teams[1].id].place,2);
+});
+test('shared answers reveal one team at a time, keep others private, and judge with sounds once',()=>{
+ const f=fixture(),{g,command}=f;g.boards[0][0].collectAnswers=true;open(f);const attemptId=g.current!.id;assert.equal(g.musicPlaying,true);
+ for(let i=0;i<2;i++)command('submit-group',{attemptId,score:'secret'+i},1000,representative(g,i));
+ command('lock-group',{attemptId},1000);assert.equal(g.musicPlaying,false);const display=()=>publicView(g,{role:'display'},f.online,1000,null);
+ command('present-team-answer',{attemptId,teamId:g.teams[0].id},1000);assert.deepEqual(display().current!.group!.submissions,{});
+ command('present-team-answer',{attemptId,teamId:g.teams[0].id,reveal:true},1000);assert.equal(Object.keys(display().current!.group!.submissions).length,1);
+ g.autoSounds=true;command('judge-team-answer',{attemptId,teamId:g.teams[0].id,correct:false},1000);assert.equal(g.soundCue?.kind,'awww');assert.equal(g.teams[0].score,-100);
+ assert.throws(()=>command('judge-team-answer',{attemptId,teamId:g.teams[0].id,correct:false},1000));
+ command('present-team-answer',{attemptId,teamId:g.teams[1].id},1000);assert.equal(display().current!.group!.submissions[g.teams[1].id],undefined);
+});
+test('next quote clears all team lockouts without undoing scores',()=>{
+ const f=fixture(),{g,command}=f;g.boards[0][0].clues[0]={prompt:'Who?',answer:'Person',used:false,quotes:[1,2,3].map(i=>({text:String(i),source:''}))};open(f);
+ command('buzz',{attemptId:g.current!.id},1000,representative(g));command('judge',{buzzId:g.current!.buzzId,correct:false},1000);
+ command('reveal-quote',{attemptId:g.current!.id,revealed:1},1000);assert.deepEqual(g.current!.lockedTeams,[]);assert.equal(g.current!.state,'open');assert.equal(g.teams[0].score,-100);
+ command('buzz',{attemptId:g.current!.id},1000,representative(g));
+});
+
+test('category examples use easy relay steps, award exactly one point, and preserve the real board and rotation',()=>{
+ for(const size of [2,5]){
+  const f=fixture(size),{g,command}=f,cat=g.boards[0][0];cat.teamBased=true;cat.exampleMode=true;
+  cat.clues[0]={prompt:'Real relay',answer:'',used:false,kind:'group',puzzle:{type:'relay',message:'Real',items:[],solution:[],answers:[],hints:[],relayDifficulty:5}};
+  const original=structuredClone(g.boards),rotation=structuredClone(g.nextRepresentatives),selector=g.selectorTeamId;
+  command('show-instructions',{visible:false});assert.equal(g.current!.example,true);assert.equal(g.current!.group!.status,'ready');
+  const attemptId=g.current!.id;assert.equal(gameSchema.parse(g).current!.exampleClue?.puzzle?.type,'relay');
+  command('start-group',{attemptId},1000);const team=g.current!.group!.puzzle!.teams[g.teams[0].id];
+  assert.equal(team.relay!.answer,size===5?7:9);assert.equal(team.relay!.order.length,Math.max(4,size));
+  assert.ok(Object.values(team.assignments).flat().every(q=>/^(?:[1-9]|__) [＋+−] [1-9]$/.test(q)));
+  const actor:Actor={role:'player',playerId:team.operator};command('submit-puzzle',{attemptId,answer:'999'},1100,actor);
+  command('submit-puzzle',{attemptId,answer:String(team.relay!.answer)},1200,actor);
+  assert.equal(g.teams[0].score,1);assert.equal(g.teams[1].score,0);assert.equal(g.musicPlaying,true);assert.equal(g.current!.group!.status,'playing');
+  const other=g.current!.group!.puzzle!.teams[g.teams[1].id];command('submit-puzzle',{attemptId,answer:String(other.relay!.answer)},1250,{role:'player',playerId:other.operator});assert.equal(g.teams[1].score,0);assert.equal(other.finishedMs,250);assert.equal(Object.keys(g.current!.group!.awards).length,1);
+  assert.throws(()=>command('submit-puzzle',{attemptId,answer:String(team.relay!.answer)},1201,actor));
+  assert.throws(()=>command('award-group',{attemptId,teamId:g.teams[1].id,place:2},1201));
+  assert.throws(()=>command('undo-end-group',{attemptId},1201));
+  command('lock-group',{attemptId},1300);assert.equal(g.musicPlaying,false);command('return-board',{},1300);assert.equal(g.current,null);assert.equal(g.introCategory,0);assert.equal(g.selectorTeamId,selector);
+  assert.deepEqual(g.boards,original);assert.deepEqual(g.nextRepresentatives,rotation);assert.throws(()=>command('start-example',{},1400));
+ }
+});
+test('bomb example is opt-in during introduction, private, three wires, and wins one point',async()=>{
+ const {recolor}=await import('../server/bomb-colors');
+ const f=fixture(),{g,command}=f;g.boards[0][0].teamBased=true;g.boards[0][0].clues[0]={prompt:'Real bomb',answer:'',used:false,kind:'group',puzzle:{type:'bomb',message:'Real',items:['Red','Blue'],solution:['Red','Blue'],answers:[],hints:['Red first']}};
+ command('show-instructions',{visible:false});assert.equal(g.current,null);
+ assert.throws(()=>command('start-example',{},0,{role:'player',playerId:g.players[0].id}),/host/);
+ command('start-example');const attemptId=g.current!.id;command('start-group',{attemptId},1000);
+ const view=publicView(g,{role:'display'},f.online,1000,null);assert.equal(view.current!.exampleClue,undefined);assert.deepEqual(view.boards[0][0].clues[0].puzzle!.solution,[]);
+ const team=g.current!.group!.puzzle!.teams[g.teams[0].id],actor:Actor={role:'player',playerId:team.operator};
+ for(const item of g.current!.exampleClue!.puzzle!.solution)command('submit-puzzle',{attemptId,item:recolor(item,team.colors!)},2000,actor);
+ assert.equal(g.teams[0].score,1);assert.equal(g.current!.group!.status,'playing');assert.equal(g.current!.exampleClue!.puzzle!.items.length,3);assert.equal(g.current!.exampleClue!.puzzle!.hints.length,3);
+ const other=g.current!.group!.puzzle!.teams[g.teams[1].id];for(const item of g.current!.exampleClue!.puzzle!.solution)command('submit-puzzle',{attemptId,item:recolor(item,other.colors!)},2500,{role:'player',playerId:other.operator});assert.equal(g.teams[1].score,0);assert.equal(other.finishedMs,1500);
+});
+test('enabled examples launch on next category and timeout gives no winner or penalties',async()=>{
+ const {advanceTimers}=await import('../server/game');const {g,command}=fixture();const cat=g.boards[0][1];cat.teamBased=true;cat.exampleMode=true;cat.clues[0]={prompt:'Relay',answer:'',used:false,kind:'group',puzzle:{type:'relay',message:'Go',items:[],solution:[],answers:[],hints:[]}};
+ command('next-category');assert.equal(g.current!.example,true);assert.equal(g.introCategory,1);
+ command('start-group',{attemptId:g.current!.id},1000);g.current!.group!.puzzle!.teams[g.teams[0].id].mistakes=5;
+ advanceTimers(g,181000);assert.equal(g.musicPlaying,false);assert.ok(g.teams.every(t=>t.score===0));
+ command('return-board',{},181001);command('next-category',{},181002);assert.equal(g.introCategory,2);
+});
+
+test('Zoomed Image pauses on buzz and fully reveals after 30 seconds of active guessing',async()=>{
+ const {advanceTimers}=await import('../server/game');const f=fixture(),{g,command}=f;
+ g.boards[0][0].clues[0].zoom={x:.2,y:.8};g.boards[0][0].clues[0].image='data:image/png;base64,AAAA';open(f);
+ command('buzz',{attemptId:g.current!.id},6000,representative(g));advanceTimers(g,31000);
+ assert.equal(g.current!.pixel!.elapsedMs,5000);assert.equal(g.current!.pixel!.runningSince,null);
+ command('judge',{buzzId:g.current!.buzzId,correct:false},31000);
+ advanceTimers(g,55999);assert.equal(g.current!.pixel!.elapsedMs,29999);
+ advanceTimers(g,56000);assert.equal(g.current!.pixel!.elapsedMs,30000);assert.equal(g.current!.pixel!.runningSince,null);
 });

@@ -7,13 +7,14 @@ export const gameLinkSchema = z.string().max(2000).refine(value => { try { const
 export const clueSchema = z.object({
   prompt: z.string().max(4000), answer: z.string().max(4000), used: z.boolean(),
   quotes: z.array(z.object({ text: z.string().max(4000), source: z.string().max(300), image: imageSchema.optional(), imageAlt: z.string().max(200).optional() })).length(3).optional(),
+  zoom: z.object({ x: z.number().min(0).max(1), y: z.number().min(0).max(1) }).optional(),
   image: imageSchema.optional(), imageAlt: z.string().max(200).optional(),
   kind: z.enum(['question', 'group']).optional(), link: z.union([z.literal(''), gameLinkSchema]).optional(),
   linkLabel: z.string().max(80).optional(), groupMode: z.enum(['time', 'score']).optional(), scoreOrder: z.enum(['higher', 'lower']).optional(), boost: z.boolean().optional(), puzzle: puzzleSchema.optional()
 });
 export type ClueData = z.infer<typeof clueSchema>;
-export const isClueReady = (q: ClueData) => !!q.prompt.trim() && (!q.quotes || (q.kind !== 'group' && !q.boost && q.quotes.every(quote => !!quote.text.trim() || !!quote.image))) && (q.kind === 'group' ? q.puzzle ? puzzleReady(q.puzzle) && !q.boost : !!q.link && gameLinkSchema.safeParse(q.link).success && !q.boost : !!q.answer.trim());
-export const categorySchema = z.object({ collectAnswers: z.boolean().optional(), submissionScope: z.enum(['player', 'team']).optional(), pixelPerfect: z.boolean().optional(), teamBased: z.boolean().optional(), openToAll: z.boolean().optional(), title: z.string().max(100), description: z.string().max(2000).optional(), clues: z.array(clueSchema).length(5) });
+export const isClueReady = (q: ClueData) => !!q.prompt.trim() && (!q.zoom || (!!q.image && q.kind !== 'group' && !q.boost)) && (!q.quotes || (q.kind !== 'group' && !q.boost && q.quotes.every(quote => !!quote.text.trim() || !!quote.image))) && (q.kind === 'group' ? q.puzzle ? puzzleReady(q.puzzle) && !q.boost : !!q.link && gameLinkSchema.safeParse(q.link).success && !q.boost : !!q.answer.trim());
+export const categorySchema = z.object({ exampleMode: z.boolean().optional(), collectAnswers: z.boolean().optional(), submissionScope: z.enum(['player', 'team']).optional(), pixelPerfect: z.boolean().optional(), teamBased: z.boolean().optional(), openToAll: z.boolean().optional(), title: z.string().max(100), description: z.string().max(2000).optional(), clues: z.array(clueSchema).length(5) });
 export const boardSchema = z.array(categorySchema).min(5).max(6);
 export const contentSchema = z.object({
   name: z.string().trim().min(1).max(100), boards: z.array(boardSchema).length(2),
@@ -22,7 +23,7 @@ export const contentSchema = z.object({
 export type Content = z.infer<typeof contentSchema>;
 const teamSchema = z.object({ id: z.string(), name: z.string().min(1).max(40), score: z.number().int(), captain: z.string().nullable(), queue: z.array(z.string()), last: z.string().nullable() });
 const playerSchema = z.object({ id: z.string(), name: z.string().min(1).max(40), teamId: z.string(), tokenHash: z.string(), active: z.boolean(), selections: z.number().int().nonnegative() });
-const currentSchema = z.object({
+const currentSchema = z.object({ example: z.boolean().optional(), exampleClue: clueSchema.optional(),
   id: z.string(), category: z.number().int().min(0).max(5), row: z.number().int().min(0).max(4),
   state: z.enum(['revealed', 'restricted', 'open', 'answering', 'resolved']),
   representatives: z.record(z.string()), lockedTeams: z.array(z.string()),
@@ -35,10 +36,11 @@ const currentSchema = z.object({
     puzzle: puzzleStateSchema.optional(), status: z.enum(['ready', 'playing', 'review']), mode: z.enum(['time', 'score']),
     elapsedMs: z.number().nonnegative(), runningSince: z.number().nullable(),
     timeLimitMs: z.number().positive().optional(), penalties: z.record(z.number()).optional(),
+    presentation: z.object({ teamId: z.string().nullable(), revealed: z.array(z.string()), judgments: z.record(z.boolean()) }).optional(),
     teamAnswers: z.boolean().optional(), submissionScope: z.enum(['player', 'team']).optional(),
     submissions: z.record(z.object({ score: z.string().max(100).nullable(), seconds: z.number().nonnegative().nullable(), submittedAt: z.string(), revision: z.number().int().positive() })),
     selectorBeforeAwards: z.string().nullable().optional(),
-    awards: z.record(z.object({ points: z.number().int(), reason: z.string().max(200), entryId: z.string() }))
+    awards: z.record(z.object({ points: z.number().int(), reason: z.string().max(200), entryId: z.string(), place: z.number().int().min(1).max(2).optional() }))
   }).optional()
 });
 const ledgerSchema = z.object({ id: z.string(), teamId: z.string(), amount: z.number().int(), reason: z.string(), at: z.string(), playerId: z.string().optional() });
@@ -50,6 +52,7 @@ export const gameSchema = contentSchema.extend({
   board: z.number().int().min(0).max(1), teams: z.array(teamSchema).min(2).max(12), players: z.array(playerSchema).max(100),
   nextRepresentatives: z.record(z.string()).optional(),
   autoSounds: z.boolean().optional(), soundCue: z.object({id:z.string(),kind:z.enum(['applause','awww','stop'])}).optional(),
+  intermission: z.boolean().optional(), exampleCategories: z.array(z.string()).optional(),
   musicPlaying: z.boolean().optional(),
   instructionsVisible: z.boolean().optional(),
   introCategory: z.number().int().min(0).max(5).nullable().optional(), selectorTeamId: z.string().nullable().optional(),

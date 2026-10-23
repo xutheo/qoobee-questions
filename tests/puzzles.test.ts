@@ -239,10 +239,10 @@ test('bomb and relay expire after three minutes of active time and deduct mistak
  const {advanceTimers}=await import('../server/game');
  for(const type of ['bomb','relay'] as const){
   const {g,team,cmd,payload}=setup(type);team.mistakes=1;
-  assert.equal(g.current!.group!.timeLimitMs,180000);
+  assert.equal(g.current!.group!.timeLimitMs,180000);assert.equal(g.musicPlaying,true);
   cmd('pause',{},61000);advanceTimers(g,161000);assert.equal(g.current!.group!.elapsedMs,60000);
   cmd('resume',{},161000);advanceTimers(g,280999);assert.equal(g.current!.group!.status,'playing');
-  advanceTimers(g,281000);assert.equal(g.current!.group!.status,'review');assert.equal(g.teams[0].score,-50);
+  advanceTimers(g,281000);assert.equal(g.current!.group!.status,'review');assert.equal(g.musicPlaying,false);assert.equal(g.teams[0].score,-50);
   advanceTimers(g,300000);assert.equal(g.teams[0].score,-50);
   assert.throws(()=>cmd('undo-end-group',payload,300000),/expired/);
  }

@@ -12,7 +12,7 @@ export function IntroControls({ v,send,disabled }: { v:View;send:(type:string,pa
   await send('next-category');
  }
 
- return <section className="question-card category-intro-host"><span className="eyebrow">BOARD {v.board+1} · CATEGORY {i+1} OF {v.boards[v.board].length}</span><h2>{category.title}</h2><p>{category.description || 'No category description added.'}</p><button className="primary" disabled={disabled || coolingDown} onClick={()=>void nextCategory()}>{i===v.boards[v.board].length-1?'Show board':'Next category'}</button></section>;
+ return <section className="question-card category-intro-host"><span className="eyebrow">BOARD {v.board+1} · CATEGORY {i+1} OF {v.boards[v.board].length}</span><h2>{category.title}</h2><p>{category.description || 'No category description added.'}</p><div className="host-clue-actions">{category.teamBased && category.clues.some(q=>q.puzzle?.type==='relay' || q.puzzle?.type==='bomb') && !v.exampleCategories?.includes(`${v.board}:${i}`) && <button className="secondary" disabled={disabled || coolingDown} onClick={()=>void send('start-example')}>Play example · winner earns 1 point</button>}<button className="primary" disabled={disabled || coolingDown} onClick={()=>void nextCategory()}>{i===v.boards[v.board].length-1?'Show board':'Next category'}</button></div></section>;
 }
 export function StreamIntro({ v }: {v:View}) {
  const incoming=v.phase==='board'&&!v.current?v.introCategory??null:null;

@@ -281,3 +281,6 @@
 .host-quote-preview .current-quote{outline:2px solid var(--gold);border-radius:8px}
 .host-quote-preview .quote-image{max-height:220px}
 @media(max-width:650px){.stream-question.quote-question{width:96%;height:92%;max-height:92%}}
+
+
+.zoom-focus{position:relative;max-width:600px;cursor:crosshair}.zoom-focus img{width:100%;display:block}.zoom-focus span{position:absolute;transform:translate(-50%,-50%);color:white;background:#242039;border:2px solid white;border-radius:50%;width:28px;height:28px;text-align:center;line-height:23px;pointer-events:none}.team-answer-reveal{text-align:center;width:100%}.revealed-team-answer{font-size:clamp(1.5rem,4vw,3rem);white-space:pre-wrap;overflow-wrap:anywhere}.intermission-slide{text-align:center}.intermission-slide h1{font-size:clamp(3rem,8vw,7rem)}
