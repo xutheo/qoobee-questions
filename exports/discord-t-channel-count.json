@@ -1,0 +1,12 @@
+{
+  "channel": "t",
+  "channelId": "1299504661585203292",
+  "start": "2024-01-01T00:00:00+00:00",
+  "end": "2026-10-22T01:18:12.869896+00:00",
+  "rule": "content.strip().lower() == t",
+  "scanned": 4123,
+  "total": 510,
+  "exactLowercase": 444,
+  "exactUppercase": 66,
+  "withWhitespace": 0
+}

@@ -485,7 +485,7 @@ test('host collects private answers from all teams and awards points manually',(
 
  assert.equal(g.current!.group!.teamAnswers,true);
  for(const p of g.players) command('submit-group',{attemptId,score:'answer '+p.id},1200,{role:'player',playerId:p.id});
- assert.equal(Object.keys(g.current!.group!.submissions).length,4);
+ assert.equal(Object.keys(g.current!.group!.submissions).length,2);
  assert.throws(()=>command('buzz',{attemptId},1300,player));
  command('lock-group',{attemptId},1400);
  assert.deepEqual(publicView(g,{role:'display'},online,1400,null).current!.group!.submissions,{});
@@ -517,4 +517,86 @@ test('host can reopen locked buzzers without changing previous scores',()=>{
 test('only host controls stream music, including while paused',()=>{
  const {g,command}=fixture();assert.throws(()=>command('set-music',{playing:true},0,{role:'player',playerId:g.players[0].id}));
  command('set-music',{playing:true});assert.equal(g.musicPlaying,true);command('pause');command('set-music',{playing:false});assert.equal(g.musicPlaying,false);
+});
+
+test('reaction clips are host-only, optional, and follow valid rulings exactly once',()=>{
+ const f=fixture(1),{g,command}=f;
+ assert.throws(()=>command('play-sound',{kind:'applause'},0,{role:'player',playerId:g.players[0].id}));
+ command('play-sound',{kind:'awww'});assert.equal(g.soundCue?.kind,'awww');
+ command('play-sound',{kind:'stop'});assert.equal(g.soundCue?.kind,'stop');
+ open(f);command('buzz',{attemptId:g.current!.id},2000,representative(g));command('judge',{buzzId:g.current!.buzzId,correct:false},3000);assert.equal(g.soundCue?.kind,'stop');
+ command('set-auto-sounds',{enabled:true});command('reopen-buzzers');command('buzz',{attemptId:g.current!.id},4000,representative(g));
+ const payload={buzzId:g.current!.buzzId,correct:true},id=randomUUID();command('judge',payload,5000,host,id);assert.equal(g.soundCue?.kind,'applause');const cue=g.soundCue;
+ command('judge',payload,5000,host,id);assert.deepEqual(g.soundCue,cue);
+ command('pause');command('play-sound',{kind:'awww'});assert.equal(g.soundCue?.kind,'awww');
+});
+
+test('quote clues reveal progressively, hide future quotes, and survive saved state', () => {
+  const f=fixture();
+  f.g.boards[0][0].clues[0]={prompt:'Who said it?',answer:'Author',used:false,quotes:[{text:'First',source:'#general · yesterday'},{text:'Second',source:''},{text:'Third',source:''}]};
+  open(f);
+  const c=f.g.current!;
+  assert.equal(c.quotesRevealed,1);
+  const view=()=>publicView(f.g,{role:'display'},f.online,1000,null);
+  assert.deepEqual(view().boards[0][0].clues[0].quotes?.map(q=>q.text),['First']);
+  assert.equal(view().boards[0][0].clues[0].answer,'');
+  assert.throws(()=>f.command('reveal-quote',{attemptId:c.id,revealed:1},1000,representative(f.g)),/host/);
+  assert.throws(()=>f.command('reveal-quote',{attemptId:'stale',revealed:1},1000));
+  f.command('reveal-quote',{attemptId:c.id,revealed:1},1000);
+  assert.equal(view().boards[0][0].clues[0].quotes?.length,2);
+  assert.throws(()=>f.command('reveal-quote',{attemptId:c.id,revealed:1},1000));
+  assert.equal(gameSchema.parse(JSON.parse(JSON.stringify(f.g))).current?.quotesRevealed,2);
+  f.command('reveal-quote',{attemptId:c.id,revealed:2},1000);
+  assert.equal(view().boards[0][0].clues[0].quotes?.length,3);
+  assert.throws(()=>f.command('reveal-quote',{attemptId:c.id,revealed:3},1000));
+  f.command('close-clue',{},1000);f.command('return-board',{},1000);
+  assert.deepEqual(view().boards[0][0].clues[0].quotes,[]);
+});
+
+test('team submission mode shares one answer per team and keeps other teams private',()=>{
+  const f=fixture(), cat=f.g.boards[0][0]; cat.openToAll=true;cat.collectAnswers=true;cat.submissionScope='team';
+  open(f);const c=f.g.current!,team=f.g.teams[0],members=f.g.players.filter(p=>p.teamId===team.id);
+  const actor=(id:string):Actor=>({role:'player',playerId:id});
+  f.command('submit-group',{attemptId:c.id,score:'First guess'},1000,actor(members[0].id));
+  f.command('submit-group',{attemptId:c.id,score:'Shared revised guess'},1000,actor(members[1].id));
+  assert.equal(Object.keys(c.group!.submissions).length,1);
+  assert.equal(c.group!.submissions[team.id].score,'Shared revised guess');
+  assert.equal(publicView(f.g,actor(members[2].id),f.online,1000,null).current!.group!.submissions[team.id].score,'Shared revised guess');
+  const other=f.g.players.find(p=>p.teamId!==team.id)!;
+  assert.deepEqual(publicView(f.g,actor(other.id),f.online,1000,null).current!.group!.submissions,{});
+  assert.deepEqual(publicView(f.g,{role:'display'},f.online,1000,null).current!.group!.submissions,{});
+  f.command('submit-group',{attemptId:c.id,score:'Other guess'},1000,actor(other.id));
+  assert.equal(Object.keys(c.group!.submissions).length,2);
+  assert.equal(gameSchema.parse(f.g).current?.group?.submissionScope,'team');
+  f.command('unfinish-group',{attemptId:c.id},1000,actor(members[2].id));
+  assert.equal(c.group!.submissions[team.id],undefined);
+  assert.equal(c.group!.submissions[other.teamId].score,'Other guess');
+  f.command('lock-group',{attemptId:c.id},1000);
+  assert.throws(()=>f.command('submit-group',{attemptId:c.id,score:'Late'},1000,actor(members[0].id)));
+});
+
+test('legacy individual written answers become the latest shared answer for each team',()=>{
+  const f=fixture();f.g.boards[0][0].openToAll=true;f.g.boards[0][0].collectAnswers=true;f.g.boards[0][0].submissionScope='player';open(f);
+  const group=f.g.current!.group!;assert.equal(group.submissionScope,'team');
+  group.submissionScope='player';
+  const members=f.g.players.filter(p=>p.teamId===f.g.teams[0].id);
+  group.submissions[members[0].id]={score:'old',seconds:null,submittedAt:'2026-01-01T00:00:00Z',revision:1};
+  group.submissions[members[1].id]={score:'latest',seconds:null,submittedAt:'2026-01-01T00:00:01Z',revision:1};
+  const view=publicView(f.g,host,f.online,1000,null);
+  assert.equal(view.current!.group!.submissionScope,'team');
+  assert.equal(view.current!.group!.submissions[f.g.teams[0].id].score,'latest');
+  assert.equal(Object.keys(view.current!.group!.submissions).length,1);
+  f.command('lock-group',{attemptId:f.g.current!.id},1000);
+  assert.equal(group.submissionScope,'team');assert.equal(group.submissions[f.g.teams[0].id].score,'latest');
+});
+
+test('future quote images stay private and quote media survives save parsing',()=>{
+  const f=fixture(),image='data:image/png;base64,iVBORw0KGgo=';
+  f.g.boards[0][0].clues[0]={prompt:'Who posted it?',answer:'Author',used:false,quotes:[{text:'First\nLine two',source:''},{text:'',source:'#channel',image},{text:'Last',source:''}]};
+  open(f);
+  const view=()=>publicView(f.g,{role:'display'},f.online,1000,null);
+  assert.ok(!JSON.stringify(view()).includes(image));
+  assert.equal(gameSchema.parse(JSON.parse(JSON.stringify(f.g))).boards[0][0].clues[0].quotes?.[1].image,image);
+  f.command('reveal-quote',{attemptId:f.g.current!.id,revealed:1},1000);
+  assert.equal(view().boards[0][0].clues[0].quotes?.[1].image,image);
 });

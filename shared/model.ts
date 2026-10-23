@@ -6,13 +6,14 @@ export const imageSchema = z.string().max(180000).regex(/^data:image\/(?:png|jpe
 export const gameLinkSchema = z.string().max(2000).refine(value => { try { const u = new URL(value); return u.protocol === 'https:' && !u.username && !u.password; } catch { return false; } }, 'Enter a full HTTPS game link.');
 export const clueSchema = z.object({
   prompt: z.string().max(4000), answer: z.string().max(4000), used: z.boolean(),
+  quotes: z.array(z.object({ text: z.string().max(4000), source: z.string().max(300), image: imageSchema.optional(), imageAlt: z.string().max(200).optional() })).length(3).optional(),
   image: imageSchema.optional(), imageAlt: z.string().max(200).optional(),
   kind: z.enum(['question', 'group']).optional(), link: z.union([z.literal(''), gameLinkSchema]).optional(),
   linkLabel: z.string().max(80).optional(), groupMode: z.enum(['time', 'score']).optional(), scoreOrder: z.enum(['higher', 'lower']).optional(), boost: z.boolean().optional(), puzzle: puzzleSchema.optional()
 });
 export type ClueData = z.infer<typeof clueSchema>;
-export const isClueReady = (q: ClueData) => !!q.prompt.trim() && (q.kind === 'group' ? q.puzzle ? puzzleReady(q.puzzle) && !q.boost : !!q.link && gameLinkSchema.safeParse(q.link).success && !q.boost : !!q.answer.trim());
-export const categorySchema = z.object({ collectAnswers: z.boolean().optional(), pixelPerfect: z.boolean().optional(), teamBased: z.boolean().optional(), openToAll: z.boolean().optional(), title: z.string().max(100), description: z.string().max(2000).optional(), clues: z.array(clueSchema).length(5) });
+export const isClueReady = (q: ClueData) => !!q.prompt.trim() && (!q.quotes || (q.kind !== 'group' && !q.boost && q.quotes.every(quote => !!quote.text.trim() || !!quote.image))) && (q.kind === 'group' ? q.puzzle ? puzzleReady(q.puzzle) && !q.boost : !!q.link && gameLinkSchema.safeParse(q.link).success && !q.boost : !!q.answer.trim());
+export const categorySchema = z.object({ collectAnswers: z.boolean().optional(), submissionScope: z.enum(['player', 'team']).optional(), pixelPerfect: z.boolean().optional(), teamBased: z.boolean().optional(), openToAll: z.boolean().optional(), title: z.string().max(100), description: z.string().max(2000).optional(), clues: z.array(clueSchema).length(5) });
 export const boardSchema = z.array(categorySchema).min(5).max(6);
 export const contentSchema = z.object({
   name: z.string().trim().min(1).max(100), boards: z.array(boardSchema).length(2),
@@ -27,13 +28,14 @@ const currentSchema = z.object({
   representatives: z.record(z.string()), lockedTeams: z.array(z.string()),
   winner: z.string().nullable(), buzzId: z.string().nullable(), previous: z.enum(['restricted', 'open']),
   remainingMs: z.number().nonnegative().max(20000), deadline: z.number().nullable(), revealedAnswer: z.boolean(),
+  quotesRevealed: z.number().int().min(1).max(3).optional(),
   pixel: z.object({ elapsedMs: z.number().min(0).max(30000), runningSince: z.number().nullable() }).optional(),
   boost: z.object({ teamId: z.string(), wager: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER) }).nullable().optional(),
   group: z.object({
     puzzle: puzzleStateSchema.optional(), status: z.enum(['ready', 'playing', 'review']), mode: z.enum(['time', 'score']),
     elapsedMs: z.number().nonnegative(), runningSince: z.number().nullable(),
     timeLimitMs: z.number().positive().optional(), penalties: z.record(z.number()).optional(),
-    teamAnswers: z.boolean().optional(),
+    teamAnswers: z.boolean().optional(), submissionScope: z.enum(['player', 'team']).optional(),
     submissions: z.record(z.object({ score: z.string().max(100).nullable(), seconds: z.number().nonnegative().nullable(), submittedAt: z.string(), revision: z.number().int().positive() })),
     selectorBeforeAwards: z.string().nullable().optional(),
     awards: z.record(z.object({ points: z.number().int(), reason: z.string().max(200), entryId: z.string() }))
@@ -47,6 +49,7 @@ export const gameSchema = contentSchema.extend({
   phase: z.enum(['lobby', 'board', 'final-wager', 'final-answer', 'final-judge', 'finished']),
   board: z.number().int().min(0).max(1), teams: z.array(teamSchema).min(2).max(12), players: z.array(playerSchema).max(100),
   nextRepresentatives: z.record(z.string()).optional(),
+  autoSounds: z.boolean().optional(), soundCue: z.object({id:z.string(),kind:z.enum(['applause','awww','stop'])}).optional(),
   musicPlaying: z.boolean().optional(),
   instructionsVisible: z.boolean().optional(),
   introCategory: z.number().int().min(0).max(5).nullable().optional(), selectorTeamId: z.string().nullable().optional(),

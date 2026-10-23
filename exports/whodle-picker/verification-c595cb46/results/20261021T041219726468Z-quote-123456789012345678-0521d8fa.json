@@ -1,0 +1,147 @@
+{
+  "exportedAt": "2026-10-21T04:12:19.726468+00:00",
+  "filters": {
+    "user": "123456789012345678",
+    "start": "2026-10-20",
+    "end": "2026-10-20",
+    "mode": "quote"
+  },
+  "status": "done",
+  "scanned": 12,
+  "matched": 12,
+  "warnings": [],
+  "results": [
+    {
+      "messageId": "0",
+      "authorId": "123456789012345678",
+      "answer": "tester",
+      "type": "quote",
+      "text": "A sufficiently long quote 0",
+      "images": [],
+      "timestamp": "2026-10-20T23:59:59Z",
+      "channel": "test",
+      "discordUrl": "https://discord.com/channels/guild/channel/0"
+    },
+    {
+      "messageId": "1",
+      "authorId": "123456789012345678",
+      "answer": "tester",
+      "type": "quote",
+      "text": "A sufficiently long quote 1",
+      "images": [],
+      "timestamp": "2026-10-20T23:59:59Z",
+      "channel": "test",
+      "discordUrl": "https://discord.com/channels/guild/channel/1"
+    },
+    {
+      "messageId": "2",
+      "authorId": "123456789012345678",
+      "answer": "tester",
+      "type": "quote",
+      "text": "A sufficiently long quote 2",
+      "images": [],
+      "timestamp": "2026-10-20T23:59:59Z",
+      "channel": "test",
+      "discordUrl": "https://discord.com/channels/guild/channel/2"
+    },
+    {
+      "messageId": "3",
+      "authorId": "123456789012345678",
+      "answer": "tester",
+      "type": "quote",
+      "text": "A sufficiently long quote 3",
+      "images": [],
+      "timestamp": "2026-10-20T23:59:59Z",
+      "channel": "test",
+      "discordUrl": "https://discord.com/channels/guild/channel/3"
+    },
+    {
+      "messageId": "4",
+      "authorId": "123456789012345678",
+      "answer": "tester",
+      "type": "quote",
+      "text": "A sufficiently long quote 4",
+      "images": [],
+      "timestamp": "2026-10-20T23:59:59Z",
+      "channel": "test",
+      "discordUrl": "https://discord.com/channels/guild/channel/4"
+    },
+    {
+      "messageId": "5",
+      "authorId": "123456789012345678",
+      "answer": "tester",
+      "type": "quote",
+      "text": "A sufficiently long quote 5",
+      "images": [],
+      "timestamp": "2026-10-20T23:59:59Z",
+      "channel": "test",
+      "discordUrl": "https://discord.com/channels/guild/channel/5"
+    },
+    {
+      "messageId": "6",
+      "authorId": "123456789012345678",
+      "answer": "tester",
+      "type": "quote",
+      "text": "A sufficiently long quote 6",
+      "images": [],
+      "timestamp": "2026-10-20T23:59:59Z",
+      "channel": "test",
+      "discordUrl": "https://discord.com/channels/guild/channel/6"
+    },
+    {
+      "messageId": "7",
+      "authorId": "123456789012345678",
+      "answer": "tester",
+      "type": "quote",
+      "text": "A sufficiently long quote 7",
+      "images": [],
+      "timestamp": "2026-10-20T23:59:59Z",
+      "channel": "test",
+      "discordUrl": "https://discord.com/channels/guild/channel/7"
+    },
+    {
+      "messageId": "8",
+      "authorId": "123456789012345678",
+      "answer": "tester",
+      "type": "quote",
+      "text": "A sufficiently long quote 8",
+      "images": [],
+      "timestamp": "2026-10-20T23:59:59Z",
+      "channel": "test",
+      "discordUrl": "https://discord.com/channels/guild/channel/8"
+    },
+    {
+      "messageId": "9",
+      "authorId": "123456789012345678",
+      "answer": "tester",
+      "type": "quote",
+      "text": "A sufficiently long quote 9",
+      "images": [],
+      "timestamp": "2026-10-20T23:59:59Z",
+      "channel": "test",
+      "discordUrl": "https://discord.com/channels/guild/channel/9"
+    },
+    {
+      "messageId": "10",
+      "authorId": "123456789012345678",
+      "answer": "tester",
+      "type": "quote",
+      "text": "A sufficiently long quote 10",
+      "images": [],
+      "timestamp": "2026-10-20T23:59:59Z",
+      "channel": "test",
+      "discordUrl": "https://discord.com/channels/guild/channel/10"
+    },
+    {
+      "messageId": "11",
+      "authorId": "123456789012345678",
+      "answer": "tester",
+      "type": "quote",
+      "text": "A sufficiently long quote 11",
+      "images": [],
+      "timestamp": "2026-10-20T23:59:59Z",
+      "channel": "test",
+      "discordUrl": "https://discord.com/channels/guild/channel/11"
+    }
+  ]
+}

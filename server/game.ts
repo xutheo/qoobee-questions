@@ -102,7 +102,19 @@ function completeContent(g: Game) {
   requireRule(g.boards.every(b => b.every(c => !c.pixelPerfect || c.clues.every(q => !!q.image && q.kind !== 'group' && !q.boost))), 'Pixel Perfect categories need an image for every question and cannot contain group activities or Qoobee Boost.');
   requireRule(g.boards.every(b => b.every(c => c.title.trim() && c.clues.every(isClueReady))) && Object.values(g.final).every(s => s.trim()), 'Complete all clues, category titles, and Final Jeopardy. External activities need an HTTPS link; team puzzles need valid clues and a complete solution.');
 }
+// Migrate old in-progress individual written answers to the latest answer per team.
+function normalizeWrittenAnswers(g: Pick<Game, 'current' | 'players' | 'teams'>) {
+  const group = g.current?.group;
+  if (!group?.teamAnswers || group.submissionScope === 'team') return;
+  const submissions: typeof group.submissions = {};
+  for (const [id, entry] of Object.entries(group.submissions)) {
+    const teamId = g.players.find(p => p.id === id)?.teamId ?? g.teams.find(t => t.id === id)?.id;
+    if (teamId && (!submissions[teamId] || entry.submittedAt >= submissions[teamId].submittedAt)) submissions[teamId] = entry;
+  }
+  group.submissionScope = 'team'; group.submissions = submissions;
+}
 export function applyCommand(g: Game, actor: Actor, command: Command, now: number, online: Set<string>) {
+  normalizeWrittenAnswers(g);
   const { type, payload: p = {} } = command;
   requireRule(actor.role !== 'display', 'The display is read only.');
   const actorKey = actor.role === 'host' ? 'host' : actor.playerId!;
@@ -113,7 +125,7 @@ export function applyCommand(g: Game, actor: Actor, command: Command, now: numbe
   if (actor.role === 'player') requireRule(player?.active, 'Your player is inactive.');
   const playerCommands = ['buzz', 'wager', 'final-answer', 'choose-team', 'submit-group', 'group-done', 'unfinish-group', 'submit-puzzle'];
   if (actor.role !== 'host') requireRule(playerCommands.includes(type), 'Only the host can do that.');
-  if (g.paused) requireRule(['resume', 'checkpoint', 'edit-player', 'captain', 'adjust-score', 'reset-game', 'set-music'].includes(type), 'The game is paused. Wait for the host to resume.');
+  if (g.paused) requireRule(['resume', 'checkpoint', 'edit-player', 'captain', 'adjust-score', 'reset-game', 'set-music', 'play-sound', 'set-auto-sounds'].includes(type), 'The game is paused. Wait for the host to resume.');
   const c = g.current;
   const activeClue = c ? g.boards[g.board][c.category].clues[c.row] : null;
   switch (type) {
@@ -175,7 +187,7 @@ export function applyCommand(g: Game, actor: Actor, command: Command, now: numbe
       for (const team of g.teams) { team.score = 0; team.queue = []; team.last = null; }
       for (const member of g.players) member.selections = 0;
       g.phase = 'lobby'; g.board = 0; g.current = null; g.paused = false; g.recovery = null;
-      g.musicPlaying = false; g.ledger = []; g.undo = null; g.finalEntries = {}; g.finalPresentation = undefined; g.nextRepresentatives = {}; g.instructionsVisible = false; g.finalRemainingMs = 30000; g.finalDeadline = null; g.selectorTeamId = null; g.introCategory = null; break;
+      g.soundCue = {id:command.id,kind:'stop'}; g.musicPlaying = false; g.ledger = []; g.undo = null; g.finalEntries = {}; g.finalPresentation = undefined; g.nextRepresentatives = {}; g.instructionsVisible = false; g.finalRemainingMs = 30000; g.finalDeadline = null; g.selectorTeamId = null; g.introCategory = null; break;
     case 'start':
       requireRule(g.phase === 'lobby', 'The game has already started.'); completeContent(g);
       requireRule(g.teams.filter(t => g.players.some(x => x.active && x.teamId === t.id && online.has(x.id))).length >= 2, 'Connect at least one player on each of two teams.');
@@ -199,11 +211,18 @@ export function applyCommand(g: Game, actor: Actor, command: Command, now: numbe
       requireRule(!(clue.kind === 'group' && clue.boost), 'Group activities cannot also be Qoobee Boost clues.');
       g.current = { id: randomUUID(), category: p.category, row: p.row, state: clue.kind === 'group' || clue.boost ? 'revealed' : g.boards[g.board][p.category].openToAll ? 'open' : 'restricted', representatives: { ...(g.nextRepresentatives ?? selectRepresentatives(g, online)) }, lockedTeams: [], winner: null, buzzId: null, previous: 'restricted', remainingMs: 10000, deadline: clue.kind === 'group' || clue.boost || g.boards[g.board][p.category].openToAll ? null : now + 10000, revealedAnswer: false,
         ...(g.boards[g.board][p.category].pixelPerfect ? { pixel: { elapsedMs: 0, runningSince: now } } : {}),
+        ...(clue.quotes ? { quotesRevealed: 1 } : {}),
         ...(clue.boost ? { boost: null } : {}), ...(clue.kind === 'group' ? { group: { status: 'ready', mode: clue.groupMode ?? 'time', elapsedMs: 0, runningSince: null, submissions: {}, awards: {} } } : {}) };
-      if (g.boards[g.board][p.category].openToAll && g.boards[g.board][p.category].collectAnswers && clue.kind !== 'group' && !clue.boost) { g.current.state = 'revealed'; g.current.deadline = null; g.current.group = {teamAnswers:true,status:'playing',mode:'score',elapsedMs:0,runningSince:now,submissions:{},awards:{}}; }
+      if (g.boards[g.board][p.category].openToAll && g.boards[g.board][p.category].collectAnswers && clue.kind !== 'group' && !clue.boost) { g.current.state = 'revealed'; g.current.deadline = null; g.current.group = {teamAnswers:true,submissionScope:'team',status:'playing',mode:'score',elapsedMs:0,runningSince:now,submissions:{},awards:{}}; }
       break;
     }
+    case 'reveal-quote':
+      requireRule(c && activeClue?.quotes && p.attemptId === c.id && p.revealed === (c.quotesRevealed ?? 1), 'This quote reveal is out of date.');
+      requireRule((c.quotesRevealed ?? 1) < 3, 'All quotes are already revealed.');
+      c.quotesRevealed = (c.quotesRevealed ?? 1) + 1; g.undo = null; break;
     case 'start-timer': requireRule(c?.state === 'revealed' && !c.group && !activeClue?.boost, 'The clue is not ready for a buzzer timer.'); c.state = 'restricted'; c.deadline = now + c.remainingMs; break;
+    case 'play-sound': requireRule(['applause','awww','stop'].includes(p.kind), 'Choose a reaction sound.'); g.soundCue = {id:command.id,kind:p.kind}; break;
+    case 'set-auto-sounds': requireRule(typeof p.enabled === 'boolean', 'Choose automatic sounds on or off.'); g.autoSounds = p.enabled; break;
     case 'set-music': requireRule(typeof p.playing === 'boolean', 'Choose play or stop.'); g.musicPlaying = p.playing; break;
     case 'reopen-buzzers':
       requireRule(c && !c.group && !activeClue?.boost && c.lockedTeams.length > 0 && c.state !== 'answering', 'No locked teams to reopen.');
@@ -226,13 +245,15 @@ export function applyCommand(g: Game, actor: Actor, command: Command, now: numbe
     }
     case 'unfinish-group': {
       requireRule(!activeClue?.puzzle && player && c?.group?.status === 'playing' && c.state !== 'resolved' && p.attemptId === c.id, 'This activity is not accepting changes.');
-      requireRule(Object.hasOwn(c.group.submissions, player.id), 'No result to undo.');
-      delete c.group.submissions[player.id]; break;
+      const key = c.group.submissionScope === 'team' ? player.teamId : player.id;
+      requireRule(Object.hasOwn(c.group.submissions, key), 'No result to undo.');
+      delete c.group.submissions[key]; break;
     }
     case 'submit-group': {
       requireRule(player && c?.group?.mode === 'score' && c.group.status === 'playing' && c.state !== 'resolved' && p.attemptId === c.id, 'Score submissions are closed.');
       requireRule(typeof p.score === 'string' && p.score.trim().length > 0 && p.score.length <= 100, 'Enter a score up to 100 characters.');
-      c.group.submissions[player.id] = { score: p.score.trim(), seconds: null, submittedAt: new Date().toISOString(), revision: (c.group.submissions[player.id]?.revision ?? 0) + 1 }; break;
+      const key = c.group.submissionScope === 'team' ? player.teamId : player.id;
+      c.group.submissions[key] = { score: p.score.trim(), seconds: null, submittedAt: new Date().toISOString(), revision: (c.group.submissions[key]?.revision ?? 0) + 1 }; break;
     }
     case 'undo-end-group':
       requireRule(c?.group?.status === 'review' && c.state !== 'resolved' && p.attemptId === c.id, 'No ended activity to resume.');
@@ -281,6 +302,7 @@ export function applyCommand(g: Game, actor: Actor, command: Command, now: numbe
     }
     case 'judge': {
       requireRule(c?.state === 'answering' && c.winner && p.buzzId === c.buzzId && typeof p.correct === 'boolean', 'That answer is no longer awaiting a ruling.');
+      if(g.autoSounds) g.soundCue = {id:command.id,kind:p.correct ? 'applause' : 'awww'};
       const respondent = g.players.find(x => x.id === c.winner)!;
       const amount = (c.boost?.wager ?? points(g.board, c.row)) * (p.correct ? 1 : -1);
       const before = structuredClone(c); const entry = score(g, respondent.teamId, amount, p.correct ? 'Correct answer' : 'Incorrect answer', respondent.id);
@@ -332,7 +354,7 @@ export function applyCommand(g: Game, actor: Actor, command: Command, now: numbe
     case 'judge-final': {
       requireRule(g.phase === 'final-judge', 'Final answers are not ready to judge.');
       const e = g.finalEntries[p.teamId]; requireRule(e && !e.judged && typeof p.correct === 'boolean', 'This team is already judged or invalid.');
-      e.correct = e.submitted && p.correct; e.judged = true; score(g, p.teamId, (e.wager ?? 0) * (e.correct ? 1 : -1), 'Final Jeopardy');
+      e.correct = e.submitted && p.correct; if(g.autoSounds) g.soundCue = {id:command.id,kind:e.correct ? 'applause' : 'awww'}; e.judged = true; score(g, p.teamId, (e.wager ?? 0) * (e.correct ? 1 : -1), 'Final Jeopardy');
       const presentation = g.finalPresentation ??= { teamId: null, answers: [], wagers: [] };
       presentation.teamId = p.teamId;
       break;
@@ -349,6 +371,7 @@ export function applyCommand(g: Game, actor: Actor, command: Command, now: numbe
 
 export function publicView(g: Game, actor: Actor, online: Set<string>, now: number, storageError: string | null): View {
   const { hostHash, processed, undo, ...safe } = structuredClone(g);
+  normalizeWrittenAnswers(safe);
   if (!safe.paused) { if (safe.current?.deadline != null) safe.current.remainingMs = Math.max(0, safe.current.deadline - now); if (safe.finalDeadline !== null) safe.finalRemainingMs = Math.max(0, safe.finalDeadline - now); }
   const view: View = { ...safe, players: safe.players.map(({ tokenHash, ...p }) => p), teams: safe.teams.filter(t => safe.phase === 'lobby' || safe.players.some(p => p.teamId === t.id)).map(({ queue, last, ...t }) => t), online: [...online], role: actor.role, playerId: actor.playerId, canUndo: actor.role === 'host' && !!undo, serverNow: now, storageError, wagerReady: Object.entries(g.finalEntries).filter(([, e]) => e.wager !== null).map(([id]) => id), unclaimed: actor.role === 'host' ? g.players.filter(p => !p.tokenHash).map(p => p.id) : [] };
   if (actor.role !== 'host') {
@@ -356,6 +379,7 @@ export function publicView(g: Game, actor: Actor, online: Set<string>, now: numb
       const q = view.boards[b][i].clues[r];
       const current = b === g.board && g.current?.category === i && g.current.row === r;
       const boostHidden = current && q.boost && !g.current?.boost && g.current?.state !== 'resolved';
+      if (q.quotes) q.quotes = current && !boostHidden ? q.quotes.slice(0, g.current?.quotesRevealed ?? 1) : [];
       if (!current || boostHidden) { q.prompt = ''; delete q.image; delete q.imageAlt; }
       if (!current) delete q.boost;
       if (!current || g.current?.group?.status === 'ready') q.link = '';
@@ -366,7 +390,8 @@ export function publicView(g: Game, actor: Actor, online: Set<string>, now: numb
   }
   if (actor.role !== 'host' && view.current?.group) {
     const group = view.current.group;
-    if (!(actor.role === 'display' && group.status === 'review' && !group.teamAnswers)) group.submissions = actor.playerId && group.submissions[actor.playerId] ? { [actor.playerId]: group.submissions[actor.playerId] } : {};
+    const key = group.submissionScope === 'team' ? g.players.find(p => p.id === actor.playerId)?.teamId : actor.playerId;
+    if (!(actor.role === 'display' && group.status === 'review' && !group.teamAnswers)) group.submissions = key && group.submissions[key] ? { [key]: group.submissions[key] } : {};
   }
   const ownTeam = g.players.find(p => p.id === actor.playerId)?.teamId;
   for (const [teamId, e] of Object.entries(view.finalEntries)) {

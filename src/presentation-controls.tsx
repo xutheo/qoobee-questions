@@ -1,3 +1,4 @@
+import {basePath} from './environment';
 import React, {useEffect,useRef,useState} from 'react';
 import {money,type View} from '../shared/model';
 export function ScoreValue({value}:{value:number}) {
@@ -15,16 +16,20 @@ export function ActivityTimer({v}:{v:View}) {
 export function StreamMusic({playing}:{playing:boolean}) {
  const context=useRef<AudioContext|null>(null),audio=useRef<HTMLAudioElement|null>(null);
  const [enabled,setEnabled]=useState(false),[source,setSource]=useState('');
- useEffect(()=>()=>{void context.current?.close();},[]);
+ useEffect(()=>{
+  let alive=true;const enable=()=>{context.current??=new AudioContext();void context.current.resume().then(()=>{if(alive)setEnabled(context.current?.state==='running');}).catch(()=>{});};
+  enable();document.addEventListener('pointerdown',enable);document.addEventListener('keydown',enable);
+  return()=>{alive=false;document.removeEventListener('pointerdown',enable);document.removeEventListener('keydown',enable);void context.current?.close();};
+ },[]);
  useEffect(()=>()=>{if(source)URL.revokeObjectURL(source);},[source]);
  useEffect(()=>{
   if(!enabled||!playing){audio.current?.pause();return;}
-  if(source){const a=new Audio(source);a.loop=true;a.volume=.3;audio.current=a;void a.play().catch(()=>setEnabled(false));return()=>{a.pause();audio.current=null;};}
-  const ctx=context.current;if(!ctx)return;
-  // Original quiet thinking loop; no downloaded theme or streamed audio traffic.
-  const notes=[60,64,67,71,69,65,62,67,64,69,72,67,65,62,59,62];let step=0;
-  const play=()=>{const oscillator=ctx.createOscillator(),gain=ctx.createGain();oscillator.type='sine';oscillator.frequency.value=440*Math.pow(2,(notes[step++%notes.length]-69)/12);gain.gain.setValueAtTime(0,ctx.currentTime);gain.gain.linearRampToValueAtTime(.065,ctx.currentTime+.025);gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.4);oscillator.connect(gain);gain.connect(ctx.destination);oscillator.start();oscillator.stop(ctx.currentTime+.45);};
-  play();const interval=setInterval(play,500);return()=>clearInterval(interval);
+  const a=new Audio(source || basePath+'audio/jeopardy-theme.mp3');a.loop=!!source;a.volume=.3;audio.current=a;
+  const seekStart=()=>{if(!source && a.duration>1)a.currentTime=1;};
+  a.addEventListener('loadedmetadata',seekStart);
+  a.addEventListener('ended',()=>{if(!source){seekStart();void a.play().catch(()=>setEnabled(false));}});
+  let cancelled=false;void a.play().catch(()=>{if(!cancelled)setEnabled(false);});
+  return()=>{cancelled=true;a.pause();audio.current=null;};
  },[playing,enabled,source]);
- return <details className="stream-audio-controls"><summary>Audio settings</summary><button onClick={async()=>{context.current??=new AudioContext();await context.current.resume();setEnabled(true);}}>Enable sound</button><label>Music file (optional)<input type="file" accept="audio/*" onChange={e=>{const file=e.target.files?.[0];if(file)setSource(URL.createObjectURL(file));}}/></label><small>{!enabled?'Enable sound once on this device.':playing?'Host has started music.':'Waiting for host to play music.'} Uses a built-in thinking loop unless you select a music file.</small></details>;
+ return <details className="stream-audio-controls"><summary>Audio settings</summary><button onClick={async()=>{context.current??=new AudioContext();await context.current.resume();setEnabled(true);}}>Enable sound</button><label>Music file (optional)<input type="file" accept="audio/*" onChange={e=>{const file=e.target.files?.[0];if(file)setSource(URL.createObjectURL(file));}}/></label><small>{!enabled?'Enable sound once on this device.':playing?'Host has started music.':'Waiting for host to play music.'} Uses the Jeopardy theme unless you select another music file.</small></details>;
 }

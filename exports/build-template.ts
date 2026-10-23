@@ -72,7 +72,7 @@ category('Spooky Stats',[
 ['What percentage of Americans plan to celebrate Halloween this year?','74%'],
 ['4.8 million Americans are planning to dress up as a witch, the top ranked costume for adults. How many Americans are expected to dress up as Batman, the third ranked costume?','2 million'],
 ['In October 2026, a Rhode Island grower set a new world record for the heaviest pumpkin. How many pounds did it weigh?','3,156 lbs'],
-['How many billions of dollars are Americans projected to spend on Halloween in 2026?','13.5 billion']],{openToAll:true}),
+['How many billions of dollars are Americans projected to spend on Halloween in 2026?','13.5 billion']],{openToAll:true,collectAnswers:true}),
 sample.boards[1][2]
 ],[ghost,
 category('Qoobee Questions',[
@@ -103,7 +103,7 @@ category('Magic: The Gathering',[
     "Proliferate"
   ]
 ]),
-{...sample.boards[1][4],title:'Pixel Perfect'},
+{...sample.boards[1][4],title:'Pixel Perfect',openToAll:true,collectAnswers:true},
 {title:'Bomb Defusal',teamBased:true,clues:bombs.map(puzzle=>({prompt:puzzle.message,answer:'',used:false,kind:'group',groupMode:'time',linkLabel:'Bomb defusal',puzzle}))}
 ]],final:{"category":"Seattle","prompt":"Seattle is known by this colorful nickname, inspired by the lush evergreen scenery surrounding the city.","answer":"Emerald City"}});
 if(content.boards.some(board=>board.length!==5||board.some(c=>c.clues.some(q=>!isClueReady(q)))))throw Error('Invalid clues');
