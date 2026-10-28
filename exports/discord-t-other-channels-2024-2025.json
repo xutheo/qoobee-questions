@@ -1,0 +1,749 @@
+{
+  "start": "2024-01-01T00:00:00+00:00",
+  "end": "2025-03-02T00:00:00+00:00",
+  "match": "One or more t/T characters and optional whitespace only; includes bot messages; March 1 inclusive UTC; excludes #t",
+  "channels": [
+    {
+      "id": "454492770682404877",
+      "name": "general",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 60,
+      "complete": true
+    },
+    {
+      "id": "513622001773182986",
+      "name": "sanrio-lovers",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 1,
+      "complete": true
+    },
+    {
+      "id": "532094684718170114",
+      "name": "tactiques de combat d'\u00e9quipe",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 52,
+      "complete": true
+    },
+    {
+      "id": "538641451211292673",
+      "name": "sanrio-thoughts",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 4199,
+      "complete": true
+    },
+    {
+      "id": "546595355509129218",
+      "name": "music",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "555180802095317003",
+      "name": "honk shoo mimimi",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "565381938022449152",
+      "name": "bots",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 2,
+      "complete": true
+    },
+    {
+      "id": "570494886005047296",
+      "name": "logs",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 3071,
+      "complete": true
+    },
+    {
+      "id": "648376150447357962",
+      "name": "howdy-chat",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "648435617746649109",
+      "name": "funemployed kitties",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 15,
+      "complete": true
+    },
+    {
+      "id": "676311806582718498",
+      "name": "smutty-fanart",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "690818177957101580",
+      "name": "no normies allowed",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "821540183156850708",
+      "name": "frick gaming",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 198,
+      "complete": true
+    },
+    {
+      "id": "821790133455945798",
+      "name": "recording booth",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "821790562289582110",
+      "name": "techie-kitties",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 23,
+      "complete": true
+    },
+    {
+      "id": "822283830396059650",
+      "name": "sussy-hours",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 14,
+      "complete": true
+    },
+    {
+      "id": "824029978198016030",
+      "name": "stock-plays",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 3,
+      "complete": true
+    },
+    {
+      "id": "827391154655461376",
+      "name": "valorant",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 493,
+      "complete": true
+    },
+    {
+      "id": "827401801383936041",
+      "name": "frick-rankings",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 4311,
+      "complete": true
+    },
+    {
+      "id": "833083167081758801",
+      "name": "game-recs",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 678,
+      "complete": true
+    },
+    {
+      "id": "841842627389554738",
+      "name": "founders-club",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 64,
+      "complete": true
+    },
+    {
+      "id": "902348468302020628",
+      "name": "\ud83d\ude9c-tractor-hands",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 139,
+      "complete": true
+    },
+    {
+      "id": "902774143571882004",
+      "name": "crypto-plays",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "905593345106141198",
+      "name": "seattleites",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 234,
+      "complete": true
+    },
+    {
+      "id": "922674739892338728",
+      "name": "weeb-zone",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 15,
+      "complete": true
+    },
+    {
+      "id": "924833852030062694",
+      "name": "tft-containment",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 442,
+      "complete": true
+    },
+    {
+      "id": "933087762557579365",
+      "name": "arom-stats",
+      "count": 1,
+      "totalTs": 1,
+      "scanned": 3954,
+      "complete": true
+    },
+    {
+      "id": "933506060315152424",
+      "name": "w\ud83d\udfe8\ud83d\udfe9\ud83d\udfe6\ud83d\udfeardle-variants",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 2161,
+      "complete": true
+    },
+    {
+      "id": "939655805861494848",
+      "name": "game-dev",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "941068107009650738",
+      "name": "lost-ark",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 74,
+      "complete": true
+    },
+    {
+      "id": "943409615142518806",
+      "name": "Raiders of the Lost ARC",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 23,
+      "complete": true
+    },
+    {
+      "id": "951617104430399588",
+      "name": "california",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "956804821774655508",
+      "name": "meme-only",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 20,
+      "complete": true
+    },
+    {
+      "id": "960408929093959700",
+      "name": "all hello all kitty",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 41,
+      "complete": true
+    },
+    {
+      "id": "968573241528582174",
+      "name": "irl-stream?",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "987602576608485437",
+      "name": "boomer shooters",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 1,
+      "complete": true
+    },
+    {
+      "id": "1063742740766134322",
+      "name": "jelley-events",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 2521,
+      "complete": true
+    },
+    {
+      "id": "1077821285566001252",
+      "name": "stream-archive",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 73,
+      "complete": true
+    },
+    {
+      "id": "1094184347944358018",
+      "name": "\ud83c\udf69donut smokers \u2668",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 19,
+      "complete": true
+    },
+    {
+      "id": "1114109093171437648",
+      "name": "mlee-pocket-ride",
+      "count": 2,
+      "totalTs": 2,
+      "scanned": 4727,
+      "complete": true
+    },
+    {
+      "id": "1123855505429909544",
+      "name": "i-makea-da-channel-for-vct",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 3,
+      "complete": true
+    },
+    {
+      "id": "1151786645536903309",
+      "name": "defendant-donald",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 125,
+      "complete": true
+    },
+    {
+      "id": "1237252324624306246",
+      "name": "degen-gamblers",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1246227919043428455",
+      "name": "gacha-dungo-smut",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 43189,
+      "complete": true
+    },
+    {
+      "id": "1311195432545812491",
+      "name": "phrecia-enjoyers",
+      "count": 1,
+      "totalTs": 1,
+      "scanned": 8568,
+      "complete": true
+    },
+    {
+      "id": "1318834323163447337",
+      "name": "antisocial-book-club",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 1105,
+      "complete": true
+    },
+    {
+      "id": "1337967518102323271",
+      "name": "social-movie-club",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 53,
+      "complete": true
+    },
+    {
+      "id": "1345227643406123101",
+      "name": "ptcgp",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 34,
+      "complete": true
+    },
+    {
+      "id": "1401358690988331169",
+      "name": "factorio-times",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1447861496116678656",
+      "name": "foodie-thoughts",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1481852279262023813",
+      "name": "slay-my-spire",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1521985232813953024",
+      "name": "sussy-triathlon",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1543371159158923365",
+      "name": "admin",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "933414075562618920",
+      "name": "marks right",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "928195508919472198",
+      "name": "screenshots",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "872198548723208192",
+      "name": "How do threads work?",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "982547380622753792",
+      "name": "Dell Alienware AW3423DW Review",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "964588591676293120",
+      "name": "Saturday party!",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1123856662000844810",
+      "name": "activities",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1505020810522529792",
+      "name": "2026-05-15 - 2026-06-06 | Tress of the Emerald Sea",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1484762757973671976",
+      "name": "2026-03-20 - 2026-05-15 | Daggermouth",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1351753035927392358",
+      "name": "rankings/ratings",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1473520214108012665",
+      "name": "2026-02-17 - 2026-03-20 | Maybe You Should Talk To Someone",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1467722668546461817",
+      "name": "2026-02-01 - 2026-02-17 | The Housemaid",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1460125384153764105",
+      "name": "2026-01-11 - 2026-02-01 | A Court of Thorn and Roses",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1441278730944381049",
+      "name": "2025-11-20 - 2026-01-11 | The Handmaid's Tale",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1428596386009452647",
+      "name": "2025-10-16 - 2025-11-20 | Chain-Gang All-Stars",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1423516151333257237",
+      "name": "2025-10-02 - 2025-10-16 | The Summer War",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1416286521010557040",
+      "name": "2025-09-12 - 2025-10-02 | Slaughterhouse Five",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1400692836898181273",
+      "name": "2025-07-31 - 2025-09-12 | The 7 1/2 Deaths of Evelyn Hardcastle",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1387264955442528327",
+      "name": "2025-06-24 - 2025-07-31 | A Confederacy of Dunces",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1323848469927952455",
+      "name": "roffles cowboyashi's great western book festival",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 597,
+      "complete": true
+    },
+    {
+      "id": "1376778082135965718",
+      "name": "2025-05-04 - 2025-05-26 | Bracket Fight Submissions",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1376757023651266613",
+      "name": "2025-05-04 - 2025-05-26 | PREZI RATINGS",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1382463275555623044",
+      "name": "2025-05-26 - 2025-06-24 | Fourth Wing",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1368787907879505951",
+      "name": "2025-05-04 - 2025-05-26 | byob book club",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1382463324448489663",
+      "name": "the devils (\ud83d\ude08)",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1345230458597806182",
+      "name": "2025-03-18 - 2025-05-04 | Going Postal",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 1,
+      "complete": true
+    },
+    {
+      "id": "1344640598128459776",
+      "name": "2025-03-18 - 2025-05-04 | The Days of the Deer",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 2,
+      "complete": true
+    },
+    {
+      "id": "1337232528943218688",
+      "name": "2025-02-18 - 2025-03-18 | martyr!",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 40,
+      "complete": true
+    },
+    {
+      "id": "1336757546496557178",
+      "name": "jess's wild ride",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 166,
+      "complete": true
+    },
+    {
+      "id": "1334182368768032869",
+      "name": "2025-02-04 - 2025-02-18 | Service Model",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 187,
+      "complete": true
+    },
+    {
+      "id": "1318836857877958676",
+      "name": "2024-12-17 - 2025-01-10 | Magyk",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 418,
+      "complete": true
+    },
+    {
+      "id": "1332791926629601290",
+      "name": "2025-01-26 - 2025-02-04 | Crying in H Mart",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 188,
+      "complete": true
+    },
+    {
+      "id": "1327610666688712734",
+      "name": "2025-01-10 - 2025-01-26 | The Murder at the Vicarage",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 418,
+      "complete": true
+    },
+    {
+      "id": "1509381675120070727",
+      "name": "new movie club president",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1347637567629037630",
+      "name": "Anyone wanna watch Mickey 17 next week",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1345228445361242144",
+      "name": "Triumphant Light Screenshots",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 5,
+      "complete": true
+    },
+    {
+      "id": "1345855696176152746",
+      "name": "Piplup room",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1345856196451504228",
+      "name": "Arceus Room",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1345855976020115539",
+      "name": "Pikachu Room",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    },
+    {
+      "id": "1345855771774029876",
+      "name": "Eevee Room",
+      "count": 0,
+      "totalTs": 0,
+      "scanned": 0,
+      "complete": true
+    }
+  ],
+  "warnings": [],
+  "targets": 93,
+  "total": 4,
+  "scanned": 82727,
+  "totalTs": 4,
+  "finished": true
+}

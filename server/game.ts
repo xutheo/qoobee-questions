@@ -429,7 +429,7 @@ export function applyCommand(g: Game, actor: Actor, command: Command, now: numbe
       presentation.teamId = p.teamId;
       break;
     }
-    case 'adjust-score': requireRule(Number.isInteger(p.amount) && Math.abs(p.amount) <= 1000000 && typeof p.reason === 'string' && p.reason.trim().length > 0 && p.reason.length <= 200, 'Enter a whole-number adjustment and a reason.'); score(g, p.teamId, p.amount, p.reason); g.undo = null; break;
+    case 'adjust-score': requireRule(Number.isInteger(p.amount) && Math.abs(p.amount) <= 1000000 && (p.reason === undefined || typeof p.reason === 'string' && p.reason.length <= 200), 'Enter a whole-number adjustment.'); score(g, p.teamId, p.amount, p.reason?.trim() || 'Manual score adjustment'); g.undo = null; break;
     case 'pause': requireRule(g.phase !== 'lobby' && g.phase !== 'finished', 'Pause is only available during gameplay.'); requireRule(!g.paused, 'Already paused.'); pause(g, now); break;
     case 'resume': requireRule(g.paused, 'The game is not paused.'); g.paused = false; g.recovery = null; if (c?.state === 'revealed' && !c.group && !activeClue?.boost) c.state = 'restricted'; if (g.phase === 'board' && !c && g.boards[g.board].every(cat => cat.clues.every(q => q.used))) advanceBoard(g); if (c?.state === 'restricted') { c.remainingMs = Math.min(c.remainingMs, 10000); c.deadline = now + c.remainingMs; } if (c?.group?.status === 'playing') c.group.runningSince = now; if (g.phase === 'final-answer') g.finalDeadline = null; break;
     case 'checkpoint': break;

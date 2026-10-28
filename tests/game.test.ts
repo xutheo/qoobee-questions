@@ -701,3 +701,9 @@ test('Zoomed Image pauses on buzz and fully reveals after 30 seconds of active g
  advanceTimers(g,55999);assert.equal(g.current!.pixel!.elapsedMs,29999);
  advanceTimers(g,56000);assert.equal(g.current!.pixel!.elapsedMs,30000);assert.equal(g.current!.pixel!.runningSince,null);
 });
+
+test('manual score adjustments require no reason and retain an audit description',()=>{
+ const {g,command}=fixture();command('adjust-score',{teamId:g.teams[0].id,amount:125});command('adjust-score',{teamId:g.teams[0].id,amount:-25});
+ assert.equal(g.teams[0].score,100);assert.equal(g.ledger.at(-1)!.reason,'Manual score adjustment');
+ assert.throws(()=>command('adjust-score',{teamId:g.teams[0].id,amount:1.5}));
+});
