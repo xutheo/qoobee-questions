@@ -1,4 +1,4 @@
-import { relayOperationCount } from '../shared/relay-difficulty';
+import { relayOperationCount, relayStepOperationCount } from '../shared/relay-difficulty';
 import { randomInt } from 'node:crypto';
 
 // Multiplication and division share precedence and run left to right.
@@ -14,10 +14,10 @@ export function evaluateRelay(numbers: number[], symbols: string[]) {
 }
 
 export function makeRelay(count: number, teamIndex: number, difficulty: number, operations: string[]) {
-  const steps = relayOperationCount(difficulty);
-  let value = 3 + steps + teamIndex;
+  let value = 3 + Math.floor(relayOperationCount(difficulty)) + teamIndex;
   const expressions: string[] = [];
   for (let player = 0; player < count; player++) {
+    const steps = relayStepOperationCount(difficulty,player,count);
     let expression = player === 0 ? String(value) : '__';
     const numbers = [value], symbols: string[] = [];
     for (let step = 0; step < steps; step++) {

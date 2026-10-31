@@ -184,7 +184,8 @@ test('generated relay expressions evaluate to the server answer for different si
    for(const [i,expression] of relay.expressions.entries()) {
      assert.doesNotMatch(expression, /[()]/);
      const parts=expression.split(' ');
-     assert.equal((parts.length-1)/2,[2,3,5,6,7][difficulty-1]);
+     const average=[2,3.5,5,6.5,8][difficulty-1];
+     assert.equal((parts.length-1)/2,Math.floor(average)+(average%1 && i<Math.ceil(count/2)?1:0));
      value=i===0?Number(parts[0]):value;
      // Independently evaluate the generated numeric-only expression using JS precedence.
      const arithmetic=[String(value),...parts.slice(1)].join(' ').replaceAll('×','*').replaceAll('÷','/').replaceAll('−','-');
@@ -257,8 +258,8 @@ test('audience relay has four matching-difficulty steps and a host-only persiste
  const audience=g.current!.group!.puzzle!.audienceRelay!;
  assert.equal(audience.expressions.length,4);
  const difficulty=g.boards[0][0].clues[0].puzzle!.relayDifficulty || 2;
- const operations=[2,3,5,6,7][difficulty-1];
- assert.ok(audience.expressions.every(e=>(e.split(' ').length-1)/2===operations));
+ const operations=[2,3.5,5,6.5,8][difficulty-1];
+ assert.ok(audience.expressions.every((e,i)=>(e.split(' ').length-1)/2===Math.floor(operations)+(operations%1 && i<2?1:0)));
  const display=()=>publicView(g,{role:'display'},online,1000,null).current!.group!.puzzle!.audienceRelay!;
  assert.equal(display().answer,undefined);assert.equal(display().revealed,false);
  assert.throws(()=>cmd('reveal-audience-relay',payload,1100,actor),/host/);
@@ -289,3 +290,5 @@ test('audience bombs have five independent levels and only host cuts update thei
  assert.ok(g.teams.every(t=>t.score===0));assert.ok(validateGame(g));
  }
 });
+
+

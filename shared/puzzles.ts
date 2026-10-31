@@ -1,7 +1,7 @@
 import { z } from 'zod';
 export const puzzleSchema = z.object({
   type: z.enum(['bomb', 'code', 'timeline', 'relay']),
-  relayExpressions: z.array(z.string().max(200).regex(/^(?:[0-9]+|__)(?: [＋+−×÷] [0-9]+){1,7}$/)).length(4).optional(),
+  relayExpressions: z.array(z.string().max(200).regex(/^(?:[0-9]+|__)(?: [＋+−×÷] [0-9]+){1,8}$/)).length(4).optional(),
   relayDifficulty: z.number().int().min(1).max(5).optional(),
   relayOperations: z.array(z.enum(['add','subtract','multiply','divide'])).min(1).max(10).optional(),
   message: z.string().max(4000), instructions: z.string().max(4000).optional(),

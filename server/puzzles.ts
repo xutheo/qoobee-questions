@@ -1,5 +1,5 @@
 import {audienceBombs} from './audience-bomb';
-import { relayOperationCount } from '../shared/relay-difficulty';
+import { relayStepOperationCount } from '../shared/relay-difficulty';
 import { makeRelay, fixedRelay } from './relay';
 import { randomInt } from 'node:crypto';
 import { recolor, teamColors } from './bomb-colors';
@@ -29,7 +29,7 @@ export function startPuzzle(g: Game, representatives: Record<string,string>) {
       while (order.length < 4) order.push(membersInOrder[order.length % membersInOrder.length]);
       // Swap an existing occurrence into the final step, preserving fair step counts.
       if (captain) { const i = order.lastIndexOf(captain), last = order.length - 1; [order[i], order[last]] = [order[last], order[i]]; }
-      const generated = c.example ? fixedRelay(order.map((_,i)=>i===0?'2 + 3':['__ + 2','__ − 1','__ + 3','__ − 2'][(i-1)%4])) : config.relayExpressions && config.relayExpressions.every(expression => (expression.split(' ').length - 1) / 2 === relayOperationCount(config.relayDifficulty || 2)) && order.length === 4 && Object.keys(group.puzzle.teams).length === 0 ? fixedRelay(config.relayExpressions) : makeRelay(order.length, Object.keys(group.puzzle.teams).length, config.relayDifficulty || 2, config.relayOperations || ['multiply','subtract','divide','add']);
+      const generated = c.example ? fixedRelay(order.map((_,i)=>i===0?'2 + 3':['__ + 2','__ − 1','__ + 3','__ − 2'][(i-1)%4])) : config.relayExpressions && config.relayExpressions.every((expression,i) => (expression.split(' ').length - 1) / 2 === relayStepOperationCount(config.relayDifficulty || 2,i,4)) && order.length === 4 && Object.keys(group.puzzle.teams).length === 0 ? fixedRelay(config.relayExpressions) : makeRelay(order.length, Object.keys(group.puzzle.teams).length, config.relayDifficulty || 2, config.relayOperations || ['multiply','subtract','divide','add']);
       order.forEach((id,i) => assignments[id].push(generated.expressions[i]));
       group.puzzle.teams[team.id] = { operator: order[order.length-1], assignments, relay: {order,answer:generated.answer}, mistakes:0,progress:[],finishedMs:null,lockedUntil:0 };
       continue;
