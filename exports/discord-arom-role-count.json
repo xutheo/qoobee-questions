@@ -1,16 +1,8 @@
 {
   "start": "2026-01-01T00:00:00+00:00",
-  "end": "2026-10-22T21:38:37.244568+00:00",
+  "end": "2026-10-31T07:33:44.655012+00:00",
   "match": "messages whose mention_roles contains arom? role 865735651516350544; includes bot messages",
   "channels": [
-    {
-      "id": "513622001773182986",
-      "name": "sanrio-lovers",
-      "count": 0,
-      "scanned": 0,
-      "complete": true,
-      "matches": []
-    },
     {
       "id": "454492770682404877",
       "name": "general",
@@ -26,10 +18,18 @@
       ]
     },
     {
-      "id": "555180802095317003",
-      "name": "honk shoo mimimi",
+      "id": "532094684718170114",
+      "name": "tactiques de combat d'\u00e9quipe",
       "count": 0,
-      "scanned": 2,
+      "scanned": 4,
+      "complete": true,
+      "matches": []
+    },
+    {
+      "id": "513622001773182986",
+      "name": "sanrio-lovers",
+      "count": 0,
+      "scanned": 0,
       "complete": true,
       "matches": []
     },
@@ -38,6 +38,14 @@
       "name": "music",
       "count": 0,
       "scanned": 0,
+      "complete": true,
+      "matches": []
+    },
+    {
+      "id": "555180802095317003",
+      "name": "honk shoo mimimi",
+      "count": 0,
+      "scanned": 2,
       "complete": true,
       "matches": []
     },
@@ -106,14 +114,6 @@
       "matches": []
     },
     {
-      "id": "532094684718170114",
-      "name": "tactiques de combat d'\u00e9quipe",
-      "count": 0,
-      "scanned": 4,
-      "complete": true,
-      "matches": []
-    },
-    {
       "id": "822283830396059650",
       "name": "sussy-hours",
       "count": 0,
@@ -138,14 +138,6 @@
       "matches": []
     },
     {
-      "id": "833083167081758801",
-      "name": "game-recs",
-      "count": 0,
-      "scanned": 85,
-      "complete": true,
-      "matches": []
-    },
-    {
       "id": "821540183156850708",
       "name": "frick gaming",
       "count": 0,
@@ -154,10 +146,10 @@
       "matches": []
     },
     {
-      "id": "841842627389554738",
-      "name": "founders-club",
+      "id": "833083167081758801",
+      "name": "game-recs",
       "count": 0,
-      "scanned": 5,
+      "scanned": 93,
       "complete": true,
       "matches": []
     },
@@ -170,18 +162,26 @@
       "matches": []
     },
     {
-      "id": "902774143571882004",
-      "name": "crypto-plays",
-      "count": 0,
-      "scanned": 0,
-      "complete": true,
-      "matches": []
-    },
-    {
       "id": "827391154655461376",
       "name": "valorant",
       "count": 0,
       "scanned": 487,
+      "complete": true,
+      "matches": []
+    },
+    {
+      "id": "841842627389554738",
+      "name": "founders-club",
+      "count": 0,
+      "scanned": 5,
+      "complete": true,
+      "matches": []
+    },
+    {
+      "id": "902774143571882004",
+      "name": "crypto-plays",
+      "count": 0,
+      "scanned": 0,
       "complete": true,
       "matches": []
     },
@@ -197,7 +197,7 @@
       "id": "924833852030062694",
       "name": "tft-containment",
       "count": 0,
-      "scanned": 321,
+      "scanned": 333,
       "complete": true,
       "matches": []
     },
@@ -205,7 +205,49 @@
       "id": "905593345106141198",
       "name": "seattleites",
       "count": 0,
-      "scanned": 668,
+      "scanned": 723,
+      "complete": true,
+      "matches": []
+    },
+    {
+      "id": "538641451211292673",
+      "name": "sanrio-thoughts",
+      "count": 5,
+      "scanned": 2331,
+      "complete": true,
+      "matches": [
+        {
+          "id": "1544164914183282728",
+          "timestamp": "2026-09-01T02:00:04.738000+00:00",
+          "url": "https://discord.com/channels/454492770682404875/538641451211292673/1544164914183282728"
+        },
+        {
+          "id": "1541893105115209738",
+          "timestamp": "2026-08-25T19:32:43.248000+00:00",
+          "url": "https://discord.com/channels/454492770682404875/538641451211292673/1541893105115209738"
+        },
+        {
+          "id": "1537881256854036570",
+          "timestamp": "2026-08-14T17:51:04.086000+00:00",
+          "url": "https://discord.com/channels/454492770682404875/538641451211292673/1537881256854036570"
+        },
+        {
+          "id": "1529648195708260453",
+          "timestamp": "2026-07-23T00:35:49.346000+00:00",
+          "url": "https://discord.com/channels/454492770682404875/538641451211292673/1529648195708260453"
+        },
+        {
+          "id": "1529216819708035105",
+          "timestamp": "2026-07-21T20:01:41.293000+00:00",
+          "url": "https://discord.com/channels/454492770682404875/538641451211292673/1529216819708035105"
+        }
+      ]
+    },
+    {
+      "id": "941068107009650738",
+      "name": "lost-ark",
+      "count": 0,
+      "scanned": 0,
       "complete": true,
       "matches": []
     },
@@ -218,8 +260,8 @@
       "matches": []
     },
     {
-      "id": "941068107009650738",
-      "name": "lost-ark",
+      "id": "951617104430399588",
+      "name": "california",
       "count": 0,
       "scanned": 0,
       "complete": true,
@@ -228,14 +270,6 @@
     {
       "id": "943409615142518806",
       "name": "Raiders of the Lost ARC",
-      "count": 0,
-      "scanned": 0,
-      "complete": true,
-      "matches": []
-    },
-    {
-      "id": "951617104430399588",
-      "name": "california",
       "count": 0,
       "scanned": 0,
       "complete": true,
@@ -258,14 +292,6 @@
       "matches": []
     },
     {
-      "id": "968573241528582174",
-      "name": "irl-stream?",
-      "count": 0,
-      "scanned": 0,
-      "complete": true,
-      "matches": []
-    },
-    {
       "id": "987602576608485437",
       "name": "boomer shooters",
       "count": 0,
@@ -274,12 +300,99 @@
       "matches": []
     },
     {
+      "id": "968573241528582174",
+      "name": "irl-stream?",
+      "count": 0,
+      "scanned": 0,
+      "complete": true,
+      "matches": []
+    },
+    {
+      "id": "1077821285566001252",
+      "name": "stream-archive",
+      "count": 0,
+      "scanned": 218,
+      "complete": true,
+      "matches": []
+    },
+    {
+      "id": "1094184347944358018",
+      "name": "\ud83c\udf69donut smokers \u2668",
+      "count": 0,
+      "scanned": 2,
+      "complete": true,
+      "matches": []
+    },
+    {
+      "id": "1114109093171437648",
+      "name": "mlee-pocket-ride",
+      "count": 0,
+      "scanned": 203,
+      "complete": true,
+      "matches": []
+    },
+    {
+      "id": "1123855505429909544",
+      "name": "i-makea-da-channel-for-vct",
+      "count": 0,
+      "scanned": 0,
+      "complete": true,
+      "matches": []
+    },
+    {
+      "id": "1151786645536903309",
+      "name": "defendant-donald",
+      "count": 0,
+      "scanned": 9,
+      "complete": true,
+      "matches": []
+    },
+    {
+      "id": "1237252324624306246",
+      "name": "degen-gamblers",
+      "count": 0,
+      "scanned": 0,
+      "complete": true,
+      "matches": []
+    },
+    {
+      "id": "1246227919043428455",
+      "name": "gacha-dungo-smut",
+      "count": 0,
+      "scanned": 192,
+      "complete": true,
+      "matches": []
+    },
+    {
+      "id": "1299504661585203292",
+      "name": "t",
+      "count": 0,
+      "scanned": 0,
+      "complete": true,
+      "matches": []
+    },
+    {
       "id": "933087762557579365",
       "name": "arom-stats",
-      "count": 144,
-      "scanned": 2362,
+      "count": 147,
+      "scanned": 2546,
       "complete": true,
       "matches": [
+        {
+          "id": "1565934982642405389",
+          "timestamp": "2026-10-31T03:46:33.527000+00:00",
+          "url": "https://discord.com/channels/454492770682404875/933087762557579365/1565934982642405389"
+        },
+        {
+          "id": "1565574174116941827",
+          "timestamp": "2026-10-30T03:52:50.071000+00:00",
+          "url": "https://discord.com/channels/454492770682404875/933087762557579365/1565574174116941827"
+        },
+        {
+          "id": "1565566213394796555",
+          "timestamp": "2026-10-30T03:21:12.087000+00:00",
+          "url": "https://discord.com/channels/454492770682404875/933087762557579365/1565566213394796555"
+        },
         {
           "id": "1558673192841650279",
           "timestamp": "2026-10-11T02:50:47.921000+00:00",
@@ -1003,108 +1116,10 @@
       ]
     },
     {
-      "id": "1077821285566001252",
-      "name": "stream-archive",
-      "count": 0,
-      "scanned": 197,
-      "complete": true,
-      "matches": []
-    },
-    {
-      "id": "1094184347944358018",
-      "name": "\ud83c\udf69donut smokers \u2668",
-      "count": 0,
-      "scanned": 2,
-      "complete": true,
-      "matches": []
-    },
-    {
-      "id": "1114109093171437648",
-      "name": "mlee-pocket-ride",
-      "count": 0,
-      "scanned": 203,
-      "complete": true,
-      "matches": []
-    },
-    {
-      "id": "1123855505429909544",
-      "name": "i-makea-da-channel-for-vct",
-      "count": 0,
-      "scanned": 0,
-      "complete": true,
-      "matches": []
-    },
-    {
-      "id": "1151786645536903309",
-      "name": "defendant-donald",
-      "count": 0,
-      "scanned": 9,
-      "complete": true,
-      "matches": []
-    },
-    {
-      "id": "1237252324624306246",
-      "name": "degen-gamblers",
-      "count": 0,
-      "scanned": 0,
-      "complete": true,
-      "matches": []
-    },
-    {
-      "id": "538641451211292673",
-      "name": "sanrio-thoughts",
-      "count": 5,
-      "scanned": 2329,
-      "complete": true,
-      "matches": [
-        {
-          "id": "1544164914183282728",
-          "timestamp": "2026-09-01T02:00:04.738000+00:00",
-          "url": "https://discord.com/channels/454492770682404875/538641451211292673/1544164914183282728"
-        },
-        {
-          "id": "1541893105115209738",
-          "timestamp": "2026-08-25T19:32:43.248000+00:00",
-          "url": "https://discord.com/channels/454492770682404875/538641451211292673/1541893105115209738"
-        },
-        {
-          "id": "1537881256854036570",
-          "timestamp": "2026-08-14T17:51:04.086000+00:00",
-          "url": "https://discord.com/channels/454492770682404875/538641451211292673/1537881256854036570"
-        },
-        {
-          "id": "1529648195708260453",
-          "timestamp": "2026-07-23T00:35:49.346000+00:00",
-          "url": "https://discord.com/channels/454492770682404875/538641451211292673/1529648195708260453"
-        },
-        {
-          "id": "1529216819708035105",
-          "timestamp": "2026-07-21T20:01:41.293000+00:00",
-          "url": "https://discord.com/channels/454492770682404875/538641451211292673/1529216819708035105"
-        }
-      ]
-    },
-    {
-      "id": "1299504661585203292",
-      "name": "t",
-      "count": 0,
-      "scanned": 0,
-      "complete": true,
-      "matches": []
-    },
-    {
-      "id": "1246227919043428455",
-      "name": "gacha-dungo-smut",
-      "count": 0,
-      "scanned": 192,
-      "complete": true,
-      "matches": []
-    },
-    {
       "id": "1063742740766134322",
       "name": "jelley-events",
       "count": 0,
-      "scanned": 951,
+      "scanned": 1003,
       "complete": true,
       "matches": []
     },
@@ -1144,7 +1159,7 @@
       "id": "1481852279262023813",
       "name": "slay-my-spire",
       "count": 0,
-      "scanned": 198,
+      "scanned": 199,
       "complete": true,
       "matches": []
     },
@@ -1152,7 +1167,7 @@
       "id": "933506060315152424",
       "name": "w\ud83d\udfe8\ud83d\udfe9\ud83d\udfe6\ud83d\udfeardle-variants",
       "count": 0,
-      "scanned": 4289,
+      "scanned": 4351,
       "complete": true,
       "matches": []
     },
@@ -1161,6 +1176,22 @@
       "name": "admin",
       "count": 0,
       "scanned": 116,
+      "complete": true,
+      "matches": []
+    },
+    {
+      "id": "1564844478156505158",
+      "name": "halloween-jeopardy-v2",
+      "count": 0,
+      "scanned": 93,
+      "complete": true,
+      "matches": []
+    },
+    {
+      "id": "1311195432545812491",
+      "name": "phrecia-enjoyers",
+      "count": 0,
+      "scanned": 2069,
       "complete": true,
       "matches": []
     },
@@ -1189,24 +1220,16 @@
       "matches": []
     },
     {
-      "id": "1311195432545812491",
-      "name": "phrecia-enjoyers",
-      "count": 0,
-      "scanned": 2065,
-      "complete": true,
-      "matches": []
-    },
-    {
-      "id": "964588591676293120",
-      "name": "Saturday party!",
+      "id": "982547380622753792",
+      "name": "Dell Alienware AW3423DW Review",
       "count": 0,
       "scanned": 0,
       "complete": true,
       "matches": []
     },
     {
-      "id": "1123856662000844810",
-      "name": "activities",
+      "id": "964588591676293120",
+      "name": "Saturday party!",
       "count": 0,
       "scanned": 0,
       "complete": true,
@@ -1253,10 +1276,10 @@
       "matches": []
     },
     {
-      "id": "982547380622753792",
-      "name": "Dell Alienware AW3423DW Review",
+      "id": "1460125384153764105",
+      "name": "2026-01-11 - 2026-02-01 | A Court of Thorn and Roses",
       "count": 0,
-      "scanned": 0,
+      "scanned": 27,
       "complete": true,
       "matches": []
     },
@@ -1269,10 +1292,10 @@
       "matches": []
     },
     {
-      "id": "1460125384153764105",
-      "name": "2026-01-11 - 2026-02-01 | A Court of Thorn and Roses",
+      "id": "1123856662000844810",
+      "name": "activities",
       "count": 0,
-      "scanned": 27,
+      "scanned": 0,
       "complete": true,
       "matches": []
     },
@@ -1293,14 +1316,6 @@
       "matches": []
     },
     {
-      "id": "1423516151333257237",
-      "name": "2025-10-02 - 2025-10-16 | The Summer War",
-      "count": 0,
-      "scanned": 0,
-      "complete": true,
-      "matches": []
-    },
-    {
       "id": "1400692836898181273",
       "name": "2025-07-31 - 2025-09-12 | The 7 1/2 Deaths of Evelyn Hardcastle",
       "count": 0,
@@ -1309,8 +1324,24 @@
       "matches": []
     },
     {
+      "id": "1521985232813953024",
+      "name": "sussy-triathlon",
+      "count": 0,
+      "scanned": 1507,
+      "complete": true,
+      "matches": []
+    },
+    {
       "id": "1387264955442528327",
       "name": "2025-06-24 - 2025-07-31 | A Confederacy of Dunces",
+      "count": 0,
+      "scanned": 0,
+      "complete": true,
+      "matches": []
+    },
+    {
+      "id": "1423516151333257237",
+      "name": "2025-10-02 - 2025-10-16 | The Summer War",
       "count": 0,
       "scanned": 0,
       "complete": true,
@@ -1349,16 +1380,16 @@
       "matches": []
     },
     {
-      "id": "1368787907879505951",
-      "name": "2025-05-04 - 2025-05-26 | byob book club",
+      "id": "1382463324448489663",
+      "name": "the devils (\ud83d\ude08)",
       "count": 0,
       "scanned": 0,
       "complete": true,
       "matches": []
     },
     {
-      "id": "1382463324448489663",
-      "name": "the devils (\ud83d\ude08)",
+      "id": "1368787907879505951",
+      "name": "2025-05-04 - 2025-05-26 | byob book club",
       "count": 0,
       "scanned": 0,
       "complete": true,
@@ -1373,16 +1404,16 @@
       "matches": []
     },
     {
-      "id": "1344640598128459776",
-      "name": "2025-03-18 - 2025-05-04 | The Days of the Deer",
+      "id": "1337232528943218688",
+      "name": "2025-02-18 - 2025-03-18 | martyr!",
       "count": 0,
       "scanned": 0,
       "complete": true,
       "matches": []
     },
     {
-      "id": "1337232528943218688",
-      "name": "2025-02-18 - 2025-03-18 | martyr!",
+      "id": "1344640598128459776",
+      "name": "2025-03-18 - 2025-05-04 | The Days of the Deer",
       "count": 0,
       "scanned": 0,
       "complete": true,
@@ -1421,18 +1452,10 @@
       "matches": []
     },
     {
-      "id": "1521985232813953024",
-      "name": "sussy-triathlon",
+      "id": "1509381675120070727",
+      "name": "new movie club president",
       "count": 0,
-      "scanned": 1507,
-      "complete": true,
-      "matches": []
-    },
-    {
-      "id": "1327610666688712734",
-      "name": "2025-01-10 - 2025-01-26 | The Murder at the Vicarage",
-      "count": 0,
-      "scanned": 0,
+      "scanned": 2,
       "complete": true,
       "matches": []
     },
@@ -1445,16 +1468,8 @@
       "matches": []
     },
     {
-      "id": "1509381675120070727",
-      "name": "new movie club president",
-      "count": 0,
-      "scanned": 2,
-      "complete": true,
-      "matches": []
-    },
-    {
-      "id": "1345228445361242144",
-      "name": "Triumphant Light Screenshots",
+      "id": "1327610666688712734",
+      "name": "2025-01-10 - 2025-01-26 | The Murder at the Vicarage",
       "count": 0,
       "scanned": 0,
       "complete": true,
@@ -1493,17 +1508,25 @@
       "matches": []
     },
     {
+      "id": "1345228445361242144",
+      "name": "Triumphant Light Screenshots",
+      "count": 0,
+      "scanned": 0,
+      "complete": true,
+      "matches": []
+    },
+    {
       "id": "1337967518102323271",
       "name": "social-movie-club",
       "count": 0,
-      "scanned": 2816,
+      "scanned": 2821,
       "complete": true,
       "matches": []
     }
   ],
   "warnings": [],
-  "targets": 93,
-  "total": 150,
-  "scanned": 21053,
+  "targets": 94,
+  "total": 153,
+  "scanned": 21552,
   "finished": true
 }

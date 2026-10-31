@@ -1,4 +1,4 @@
-import { gameSchema } from '../shared/model';
+import { gameSchema, activeTeamPlayer, highlightedTeamPlayer } from '../shared/model';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
@@ -37,18 +37,18 @@ test('absent players retain an owed turn and do not block connected teammates', 
 test('nonrepresentatives cannot buzz before deadline, but can at the exact deadline', () => {
   const f = fixture(); open(f); const g = f.g;
   const p = g.players.find(p => p.teamId === g.teams[0].id && p.id !== representative(g).playerId)!;
-  assert.throws(() => f.command('buzz', { attemptId: g.current!.id }, 10999, { role: 'player', playerId: p.id }), /representing/);
-  f.command('buzz', { attemptId: g.current!.id }, 11000, { role: 'player', playerId: p.id });
+  assert.throws(() => f.command('buzz', { attemptId: g.current!.id }, 15999, { role: 'player', playerId: p.id }), /representing/);
+  f.command('buzz', { attemptId: g.current!.id }, 16000, { role: 'player', playerId: p.id });
   assert.equal(g.current!.winner, p.id); assert.equal(g.current!.previous, 'open');
 });
 test('first valid buzz wins and pauses time; wrong answer resumes exact remainder and locks team', () => {
   const f = fixture(); open(f); const g = f.g;
   const a = representative(g), b = representative(g, 1);
   f.command('buzz', { attemptId: g.current!.id }, 8000, a);
-  assert.equal(g.current!.remainingMs, 3000);
+  assert.equal(g.current!.remainingMs, 8000);
   assert.throws(() => f.command('buzz', { attemptId: g.current!.id }, 8001, b), /not available/);
   f.command('judge', { buzzId: g.current!.buzzId, correct: false }, 16000);
-  assert.equal(g.teams[0].score, -100); assert.equal(g.current!.deadline, 19000);
+  assert.equal(g.teams[0].score, -100); assert.equal(g.current!.deadline, 24000);
   assert.throws(() => f.command('buzz', { attemptId: g.current!.id }, 17000, a), /already answered/);
   f.command('buzz', { attemptId: g.current!.id }, 18000, b);
   f.command('judge', { buzzId: g.current!.buzzId, correct: true }, 25000);
@@ -67,18 +67,18 @@ test('undo restores answer opportunity and creates a compensating ledger entry',
   f.command('buzz', { attemptId: g.current!.id }, 6000, representative(g)); const winner = g.current!.winner;
   f.command('judge', { buzzId: g.current!.buzzId, correct: false }, 12000);
   f.command('undo', {}, 14000);
-  assert.equal(g.teams[0].score, 0); assert.equal(g.current!.state, 'answering'); assert.equal(g.current!.winner, winner); assert.equal(g.current!.remainingMs, 5000); assert.equal(g.ledger.length, 2);
+  assert.equal(g.teams[0].score, 0); assert.equal(g.current!.state, 'answering'); assert.equal(g.current!.winner, winner); assert.equal(g.current!.remainingMs, 10000); assert.equal(g.ledger.length, 2);
 });
 test('pause and resume preserve timer; unauthorized host commands fail', () => {
   const f = fixture(); open(f); const g = f.g;
   assert.throws(() => f.command('close-clue', {}, 1000, representative(g)), /Only the host/);
-  f.command('pause', {}, 9000); assert.equal(g.current!.remainingMs, 2000);
+  f.command('pause', {}, 9000); assert.equal(g.current!.remainingMs, 7000);
   assert.throws(() => f.command('buzz', { attemptId: g.current!.id }, 10000, representative(g)), /paused/);
-  f.command('resume', {}, 100000); assert.equal(g.current!.deadline, 102000);
+  f.command('resume', {}, 100000); assert.equal(g.current!.deadline, 107000);
 });
 test('player snapshots omit private answers, credentials, rotation queues, and command history', () => {
   const f = fixture(); open(f); const view = publicView(f.g, representative(f.g), f.online, 5000, null);
-  assert.equal(view.current!.remainingMs, 6000);
+  assert.equal(view.current!.remainingMs, 11000);
   assert.equal(view.boards[0][0].clues[0].answer, ''); assert.equal(view.boards[0][0].clues[1].prompt, ''); assert.equal(view.final.answer, '');
   const json = JSON.stringify(view); assert.ok(!json.includes('tokenHash')); assert.ok(!json.includes('hostHash')); assert.ok(!json.includes('processed')); assert.ok(!json.includes('queue'));
 });
@@ -162,7 +162,7 @@ test('group score is free text, editable until review and not automatically scor
 test('automatic countdown, answer reveal and board progression preserve final answer review', () => {
   const f = fixture(1), { g, command } = f;
   command('open-clue', { category: 0, row: 0 }, 2500);
-  assert.equal(g.current!.state, 'restricted'); assert.equal(g.current!.deadline, 12500);
+  assert.equal(g.current!.state, 'restricted'); assert.equal(g.current!.deadline, 17500);
   command('buzz', { attemptId: g.current!.id }, 3000, representative(g));
   command('judge', { buzzId: g.current!.buzzId, correct: true }, 3500);
   assert.equal(g.current!.revealedAnswer, true);
@@ -662,14 +662,14 @@ test('category examples use easy relay steps, award exactly one point, and prese
   assert.equal(team.relay!.answer,size===5?7:9);assert.equal(team.relay!.order.length,Math.max(4,size));
   assert.ok(Object.values(team.assignments).flat().every(q=>/^(?:[1-9]|__) [＋+−] [1-9]$/.test(q)));
   const actor:Actor={role:'player',playerId:team.operator};command('submit-puzzle',{attemptId,answer:'999'},1100,actor);
-  command('submit-puzzle',{attemptId,answer:String(team.relay!.answer)},1200,actor);
+  command('submit-puzzle',{attemptId,answer:String(team.relay!.answer)},2200,actor);
   assert.equal(g.teams[0].score,1);assert.equal(g.teams[1].score,0);assert.equal(g.musicPlaying,true);assert.equal(g.current!.group!.status,'playing');
-  const other=g.current!.group!.puzzle!.teams[g.teams[1].id];command('submit-puzzle',{attemptId,answer:String(other.relay!.answer)},1250,{role:'player',playerId:other.operator});assert.equal(g.teams[1].score,0);assert.equal(other.finishedMs,250);assert.equal(Object.keys(g.current!.group!.awards).length,1);
-  assert.throws(()=>command('submit-puzzle',{attemptId,answer:String(team.relay!.answer)},1201,actor));
-  assert.throws(()=>command('award-group',{attemptId,teamId:g.teams[1].id,place:2},1201));
-  assert.throws(()=>command('undo-end-group',{attemptId},1201));
-  command('lock-group',{attemptId},1300);assert.equal(g.musicPlaying,false);command('return-board',{},1300);assert.equal(g.current,null);assert.equal(g.introCategory,0);assert.equal(g.selectorTeamId,selector);
-  assert.deepEqual(g.boards,original);assert.deepEqual(g.nextRepresentatives,rotation);assert.throws(()=>command('start-example',{},1400));
+  const other=g.current!.group!.puzzle!.teams[g.teams[1].id];command('submit-puzzle',{attemptId,answer:String(other.relay!.answer)},2250,{role:'player',playerId:other.operator});assert.equal(g.teams[1].score,0);assert.equal(other.finishedMs,1250);assert.equal(Object.keys(g.current!.group!.awards).length,1);
+  assert.throws(()=>command('submit-puzzle',{attemptId,answer:String(team.relay!.answer)},2251,actor));
+  assert.throws(()=>command('award-group',{attemptId,teamId:g.teams[1].id,place:2},2251));
+  assert.throws(()=>command('undo-end-group',{attemptId},2251));
+  command('lock-group',{attemptId},2300);assert.equal(g.musicPlaying,false);command('return-board',{},2300);assert.equal(g.current,null);assert.equal(g.introCategory,0);assert.equal(g.selectorTeamId,selector);
+  assert.deepEqual(g.boards,original);assert.deepEqual(g.nextRepresentatives,rotation);assert.throws(()=>command('start-example',{},2400));
  }
 });
 test('bomb example is opt-in during introduction, private, three wires, and wins one point',async()=>{
@@ -706,4 +706,156 @@ test('manual score adjustments require no reason and retain an audit description
  const {g,command}=fixture();command('adjust-score',{teamId:g.teams[0].id,amount:125});command('adjust-score',{teamId:g.teams[0].id,amount:-25});
  assert.equal(g.teams[0].score,100);assert.equal(g.ledger.at(-1)!.reason,'Manual score adjustment');
  assert.throws(()=>command('adjust-score',{teamId:g.teams[0].id,amount:1.5}));
+});
+
+test('only active team captains can select a validated persistent icon',()=>{
+ const {g,command,online}=fixture();command('reset-game',{confirm:true});const captain:Actor={role:'player',playerId:g.teams[0].captain!};
+ command('set-team-icon',{icon:'vampire'},0,captain);
+ assert.equal(gameSchema.parse(g).teams[0].icon,'vampire');
+ assert.equal(publicView(g,{role:'display'},online,0,null).teams[0].icon,'vampire');
+ assert.throws(()=>command('set-team-icon',{icon:'mummy'},0,{role:'player',playerId:g.players[1].id}),/captain/);
+ assert.throws(()=>command('set-team-icon',{icon:'https://evil.example/icon'},0,captain),/valid/);
+ assert.equal(g.teams[1].icon,'pumpkin');
+ command('reset-game',{confirm:true});assert.equal(g.teams[0].icon,'vampire');
+});
+test('final jeopardy starts music and closing submissions stops it',()=>{
+ const {g,command}=fixture();g.board=1;g.current=null;g.musicPlaying=false;
+ command('advance-board',{skip:true});assert.equal(g.phase,'final-wager');assert.equal(g.musicPlaying,true);
+ command('set-music',{playing:false});command('lock-wagers',{zeroMissing:true});assert.equal(g.musicPlaying,true);
+ command('lock-answers');assert.equal(g.musicPlaying,false);
+});
+
+test('only current captains transfer captaincy in lobby; captain and icon choices lock at start',()=>{
+ const {g,command}=fixture();command('reset-game',{confirm:true});const actor:Actor={role:'player',playerId:g.players[0].id};
+ assert.throws(()=>command('captain',{teamId:g.teams[0].id,playerId:g.players[1].id},0,{role:'player',playerId:g.players[1].id}),/current captain/);
+ command('captain',{teamId:g.teams[0].id,playerId:g.players[2].id},0,actor);assert.equal(g.teams[0].captain,g.players[2].id);
+ assert.throws(()=>command('captain',{teamId:g.teams[0].id,playerId:g.players[0].id},0,actor),/current captain/);
+ assert.throws(()=>command('captain',{teamId:g.teams[1].id,playerId:g.players[3].id},0,actor),/own team/);
+ command('set-team-icon',{icon:'piplup'},0,{role:'player',playerId:g.players[2].id});
+ command('start');assert.throws(()=>command('captain',{teamId:g.teams[0].id,playerId:g.players[1].id}),/before/);
+ assert.throws(()=>command('set-team-icon',{icon:'witch'},0,{role:'player',playerId:g.players[2].id}),/before/);
+});
+test('green questions default to captain even when another teammate represents the team',()=>{
+ const {g,command}=fixture();g.boards[0][0].collectAnswers=true;g.nextRepresentatives![g.teams[0].id]=g.players[1].id;
+ command('open-clue',{category:0,row:0});assert.equal(g.current!.representatives[g.teams[0].id],g.teams[0].captain);
+});
+test('bomb operator and last relay step default to captain for small and large teams',()=>{
+ for(const size of [1,2,3,4,5]) for(const type of ['bomb','relay'] as const){
+ const {g,command}=fixture(size);const team=g.teams[0];team.captain=g.players[size-1].id;
+ g.boards[0][0].teamBased=true;g.boards[0][0].clues[0]={prompt:'Puzzle',answer:'',used:false,kind:'group',puzzle:{type,message:'Go',items:['Red','Blue'],solution:['Red','Blue'],answers:[],hints:['Red first','Blue second']}};
+ command('open-clue',{category:0,row:0});command('start-group',{attemptId:g.current!.id});const state=g.current!.group!.puzzle!.teams[team.id];assert.equal(state.operator,team.captain);
+ assert.equal(highlightedTeamPlayer(publicView(g,host,new Set(),0,null),team.id),state.operator);
+ if(type==='relay'){assert.equal(state.relay!.order.at(-1),team.captain);assert.equal(state.relay!.order.length,Math.max(4,size));const counts=g.players.filter(p=>p.teamId===team.id).map(p=>state.assignments[p.id].length);assert.ok(Math.max(...counts)-Math.min(...counts)<=1);}
+ }
+});
+
+test('Qoobee selections are exclusive and switching releases the previous icon',()=>{
+ const {g,command}=fixture();command('reset-game',{confirm:true});
+ const a:Actor={role:'player',playerId:g.teams[0].captain!}, b:Actor={role:'player',playerId:g.teams[1].captain!};
+ command('set-team-icon',{icon:'witch'},0,a);
+ assert.throws(()=>command('set-team-icon',{icon:'witch'},0,b),/already selected/);
+ assert.equal(g.teams[1].icon,'pumpkin');
+ command('set-team-icon',{icon:'witch'},0,a);
+ command('set-team-icon',{icon:'piplup'},0,a);
+ command('set-team-icon',{icon:'witch'},0,b);
+ assert.deepEqual(g.teams.map(t=>t.icon),['piplup','witch']);
+});
+
+test('normal clue text reveal pauses on buzz and game pause and resumes after wrong ruling',()=>{
+ const {g,command,online}=fixture();command('open-clue',{category:0,row:0},1000);const c=g.current!;
+ assert.deepEqual(c.textReveal,{elapsedMs:0,runningSince:1000});
+ command('buzz',{attemptId:c.id},2000,representative(g));assert.equal(c.textReveal!.elapsedMs,1000);assert.equal(c.textReveal!.runningSince,null);
+ command('judge',{buzzId:c.buzzId,correct:false},5000);assert.equal(c.textReveal!.elapsedMs,1000);assert.equal(c.textReveal!.runningSince,5000);
+ command('pause',{},5500);assert.equal(c.textReveal!.elapsedMs,1500);assert.equal(c.textReveal!.runningSince,null);
+ command('resume',{},9000);assert.equal(c.textReveal!.elapsedMs,1500);assert.equal(c.textReveal!.runningSince,9000);
+ assert.equal(gameSchema.parse(g).current!.textReveal!.elapsedMs,1500);
+ assert.equal(publicView(g,{role:'display'},online,9100,null).current!.textReveal!.runningSince,9000);
+});
+test('colored categories and boost clues do not progressively reveal text',()=>{
+ for(const flag of ['openToAll','collectAnswers','teamBased','boost']){
+ const {g,command}=fixture();const cat=g.boards[0][0];if(flag==='boost')cat.clues[0].boost=true;else (cat as any)[flag]=true;
+ command('open-clue',{category:0,row:0},1000);assert.equal(g.current!.textReveal,undefined);
+ }
+});
+
+test('new and added teams receive unique selectable mascots, and removed mascots can be reused',()=>{
+ const g=newGame('secret');assert.deepEqual(g.teams.map(t=>t.icon),['witch','pumpkin']);
+ const command=(type:string,payload={})=>applyCommand(g,host,{id:randomUUID(),type,payload},0,new Set());
+ for(let i=0;i<4;i++)command('add-team',{name:'Team '+i});
+ assert.equal(new Set(g.teams.map(t=>t.icon)).size,6);assert.ok(g.teams.every(t=>t.icon && t.icon!=='sylas'));
+ assert.throws(()=>command('add-team',{name:'Extra'}),/mascots are taken/);assert.equal(g.teams.length,6);
+ const removed=g.teams[3];command('remove-team',{teamId:removed.id});command('add-team',{name:'Replaced'});assert.equal(g.teams.at(-1)!.icon,removed.icon);
+});
+
+
+test('opening rules are host editable, validated, published and preserved on reset', () => {
+  const f = fixture();
+  assert.throws(() => f.command('set-rules', {rules:'Changed'}, 0, {role:'player',playerId:f.g.players[0].id}));
+  for (const rules of ['', '   ', 'x'.repeat(12001), 123]) assert.throws(() => f.command('set-rules', {rules}));
+  f.command('pause');
+  f.command('set-rules', {rules:'  First rule\n\nSecond rule  '});
+  assert.equal(f.g.rules, 'First rule\n\nSecond rule');
+  assert.equal(publicView(f.g, {role:'display'}, f.online, 0, null).rules, f.g.rules);
+  assert.equal(gameSchema.parse(JSON.parse(JSON.stringify(f.g))).rules, f.g.rules);
+  f.command('reset-game', {confirm:true});
+  assert.equal(f.g.rules, 'First rule\n\nSecond rule');
+});
+
+
+test('team creation and renaming enforce nine-character names', () => {
+ const {g,command}=fixture(); command('reset-game',{confirm:true});
+ command('rename-team',{teamId:g.teams[0].id,name:'Qoobsters'});
+ assert.throws(()=>command('rename-team',{teamId:g.teams[0].id,name:'0123456789'}),/9 characters/);
+ assert.throws(()=>command('add-team',{name:'0123456789'}),/9 characters/);
+ command('add-team',{name:'123456789'});
+ assert.equal(g.teams.at(-1)!.name,'123456789');
+});
+
+
+test('colored categories preserve the active player and rotation until a normal clue is played', () => {
+ for(const flag of ['openToAll','collectAnswers','teamBased'] as const){
+  const f=fixture();f.g.boards[0][0][flag]=true;
+  const before=structuredClone(f.g.nextRepresentatives);
+  const queues=structuredClone(f.g.teams.map(t=>t.queue));
+  const selections=f.g.players.map(p=>p.selections);
+  open(f);
+  for(const t of f.g.teams)assert.equal(activeTeamPlayer(publicView(f.g,host,f.online,1000,null),t.id),before![t.id]);
+  f.command('close-clue',{},2000);f.command('return-board',{},3000);
+  assert.deepEqual(f.g.nextRepresentatives,before);
+  assert.deepEqual(f.g.teams.map(t=>t.queue),queues);
+  assert.deepEqual(f.g.players.map(p=>p.selections),selections);
+  f.g.boards[0][0][flag]=false;
+  f.command('open-clue',{category:0,row:1},4000);
+  assert.deepEqual(f.g.current!.representatives,before);
+  f.command('close-clue',{},5000);f.command('return-board',{},6000);
+  assert.notDeepEqual(f.g.nextRepresentatives,before);
+ }
+});
+
+
+test('player screen emphasis is absent for red and follows the green submitter without changing rotation',()=>{
+ const f=fixture();const team=f.g.teams[0];
+ f.g.nextRepresentatives![team.id]=f.g.players[1].id;
+ f.g.boards[0][0].openToAll=true;open(f);
+ assert.equal(highlightedTeamPlayer(publicView(f.g,host,f.online,1000,null),team.id),null);
+ f.command('close-clue');f.command('return-board');
+ f.g.boards[0][0].openToAll=false;f.g.boards[0][0].collectAnswers=true;
+ f.command('open-clue',{category:0,row:1});
+ const view=publicView(f.g,host,f.online,1000,null);
+ assert.equal(highlightedTeamPlayer(view,team.id),team.captain);
+ assert.equal(activeTeamPlayer(view,team.id),f.g.players[1].id);
+});
+
+
+test('unfinished bomb and relay teams lose the clue value once, with reopening refunding it',()=>{
+ for(const type of ['bomb','relay'] as const){
+ const {g,command}=fixture();g.boards[0][0].teamBased=true;
+ g.boards[0][0].clues[2]={prompt:'Puzzle',answer:'',used:false,kind:'group',puzzle:{type,message:'Go',items:['Red','Blue'],solution:['Red','Blue'],answers:[],hints:['Red first','Blue second']}};
+ command('open-clue',{category:0,row:2});command('start-group',{attemptId:g.current!.id});
+ const done=g.current!.group!.puzzle!.teams[g.teams[0].id];done.finishedMs=100;done.mistakes=0;
+ g.current!.group!.puzzle!.teams[g.teams[1].id].mistakes=1;
+ command('lock-group',{attemptId:g.current!.id});assert.equal(g.teams[0].score,0);assert.equal(g.teams[1].score,-300);
+ command('undo-end-group',{attemptId:g.current!.id});assert.equal(g.teams[1].score,0);
+ command('lock-group',{attemptId:g.current!.id});command('close-clue');assert.equal(g.teams[1].score,-300);
+ }
 });

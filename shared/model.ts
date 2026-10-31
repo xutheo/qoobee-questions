@@ -17,11 +17,13 @@ export const isClueReady = (q: ClueData) => !!q.prompt.trim() && (!q.zoom || (!!
 export const categorySchema = z.object({ exampleMode: z.boolean().optional(), collectAnswers: z.boolean().optional(), submissionScope: z.enum(['player', 'team']).optional(), pixelPerfect: z.boolean().optional(), teamBased: z.boolean().optional(), openToAll: z.boolean().optional(), title: z.string().max(100), description: z.string().max(2000).optional(), clues: z.array(clueSchema).length(5) });
 export const boardSchema = z.array(categorySchema).min(5).max(6);
 export const contentSchema = z.object({
+  rules: z.string().trim().min(1).max(12000).optional(),
   name: z.string().trim().min(1).max(100), boards: z.array(boardSchema).length(2),
   final: z.object({ category: z.string().max(100), prompt: z.string().max(4000), answer: z.string().max(4000) })
 });
 export type Content = z.infer<typeof contentSchema>;
-const teamSchema = z.object({ id: z.string(), name: z.string().min(1).max(40), score: z.number().int(), captain: z.string().nullable(), queue: z.array(z.string()), last: z.string().nullable() });
+import { teamIcons } from './team-icons';
+const teamSchema = z.object({ id: z.string(), name: z.string().min(1).max(40), score: z.number().int(), captain: z.string().nullable(), icon: z.enum(teamIcons).optional(), queue: z.array(z.string()), last: z.string().nullable() });
 const playerSchema = z.object({ id: z.string(), name: z.string().min(1).max(40), teamId: z.string(), tokenHash: z.string(), active: z.boolean(), selections: z.number().int().nonnegative() });
 const currentSchema = z.object({ example: z.boolean().optional(), exampleClue: clueSchema.optional(),
   id: z.string(), category: z.number().int().min(0).max(5), row: z.number().int().min(0).max(4),
@@ -30,6 +32,7 @@ const currentSchema = z.object({ example: z.boolean().optional(), exampleClue: c
   winner: z.string().nullable(), buzzId: z.string().nullable(), previous: z.enum(['restricted', 'open']),
   remainingMs: z.number().nonnegative().max(20000), deadline: z.number().nullable(), revealedAnswer: z.boolean(),
   quotesRevealed: z.number().int().min(1).max(3).optional(),
+  textReveal: z.object({ elapsedMs: z.number().nonnegative(), runningSince: z.number().nullable() }).optional(),
   pixel: z.object({ elapsedMs: z.number().min(0).max(30000), runningSince: z.number().nullable() }).optional(),
   boost: z.object({ teamId: z.string(), wager: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER) }).nullable().optional(),
   group: z.object({
@@ -81,8 +84,23 @@ export const money = (n: number) => new Intl.NumberFormat('en-US').format(n);
 
 export function activeTeamPlayer(v: View, teamId: string): string | null {
   const c = v.current;
-  if (!c && v.phase === 'board') return v.players.find(p => p.id === v.nextRepresentatives?.[teamId] && p.active)?.id ?? null;
+  const category = c && v.boards[v.board][c.category];
+  if (v.phase === 'board' && (!c || category?.openToAll || category?.collectAnswers || category?.teamBased)) return v.players.find(p => p.id === v.nextRepresentatives?.[teamId] && p.active)?.id ?? null;
   if (!c || c.group || c.lockedTeams.includes(teamId) || c.state === 'resolved' || c.state === 'open') return null;
   if (c.state === 'answering') return v.players.find(p => p.id === c.winner && p.teamId === teamId)?.id ?? null;
   return v.players.find(p => p.id === c.representatives[teamId] && p.active)?.id ?? null;
+}
+
+
+// Screen emphasis follows the task role without consuming the normal turn rotation.
+export function highlightedTeamPlayer(v: View, teamId: string): string | null {
+  const c = v.current;
+  if (!c) return activeTeamPlayer(v, teamId);
+  const category = v.boards[v.board][c.category];
+  if (category.openToAll) return null;
+  if (c.group?.teamAnswers) return c.representatives[teamId] ?? null;
+  const clue = c.exampleClue ?? category.clues[c.row];
+  if (clue.puzzle?.type === 'relay' || clue.puzzle?.type === 'bomb') return c.group?.puzzle?.teams[teamId]?.operator ?? null;
+  if (category.teamBased || category.collectAnswers) return null;
+  return activeTeamPlayer(v, teamId);
 }

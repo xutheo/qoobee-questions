@@ -1,3 +1,4 @@
+import {defaultRules, parseRules} from '../shared/rules';
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { View } from '../shared/model';
 export function IntroControls({ v,send,disabled }: { v:View;send:(type:string,payload?:unknown)=>Promise<boolean>;disabled:boolean }) {
@@ -52,6 +53,6 @@ export function StreamIntro({ v }: {v:View}) {
  return <div className={"stream-category-intro" + (cat.collectAnswers ? " team-submission-intro" : cat.openToAll ? " open-team-intro" : cat.teamBased ? " team-based-intro" : "")} ref={panel} key={v.board+'-'+shown}><span>BOARD {v.board+1} · CATEGORY {shown+1} OF {v.boards[v.board].length}</span><h1>{cat.title}</h1><p>{cat.description}</p></div>;
 }
 
-export function GameInstructions() {
- return <div className="game-instructions"><h2>Rules</h2><ol><li><strong>Everyone gets a turn</strong><p>One player from each team is selected for each question. Every teammate gets a fair chance before anyone is selected again.</p></li><li><strong>10 seconds to answer</strong><p>Only the selected players can buzz during the first 10 seconds. After the countdown, the question opens to everyone eligible to answer.</p></li><li><strong>No talking during the countdown</strong><p>Other team members must stay silent during the 10-second countdown.</p></li></ol></div>;
+export function GameInstructions({rules}: {rules?:string}) {
+ return <div className="game-instructions"><h2>Rules</h2><ol>{parseRules(rules ?? defaultRules).map((rule,i)=><li key={i}><strong>{rule.heading}</strong>{rule.body && <p className="custom-rules">{rule.body}</p>}</li>)}</ol></div>;
 }

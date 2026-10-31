@@ -1,7 +1,7 @@
 import { z } from 'zod';
 export const puzzleSchema = z.object({
   type: z.enum(['bomb', 'code', 'timeline', 'relay']),
-  relayExpressions: z.array(z.string().max(200).regex(/^(?:[0-9]+|__)(?: [＋+−×÷] [0-9]+){1,5}$/)).length(4).optional(),
+  relayExpressions: z.array(z.string().max(200).regex(/^(?:[0-9]+|__)(?: [＋+−×÷] [0-9]+){1,7}$/)).length(4).optional(),
   relayDifficulty: z.number().int().min(1).max(5).optional(),
   relayOperations: z.array(z.enum(['add','subtract','multiply','divide'])).min(1).max(10).optional(),
   message: z.string().max(4000), instructions: z.string().max(4000).optional(),
@@ -11,7 +11,7 @@ export const puzzleSchema = z.object({
   answers: z.array(z.string().max(500)).max(20)
 });
 export type Puzzle = z.infer<typeof puzzleSchema>;
-export const puzzleStateSchema = z.object({ teams: z.record(z.object({
+export const puzzleStateSchema = z.object({ audienceBomb:z.object({items:z.array(z.string()),hints:z.array(z.string()),solution:z.array(z.string()).optional(),progress:z.array(z.string()),mistakes:z.number(),defused:z.boolean(),lockedUntil:z.number()}).optional(), audienceRelay: z.object({expressions:z.array(z.string()).length(4),answer:z.number().optional(),revealed:z.boolean()}).optional(), teams: z.record(z.object({
   relay: z.object({ order: z.array(z.string()), answer: z.number().optional() }).optional(),
   colors: z.record(z.string()).optional(),
   operator: z.string(), assignments: z.record(z.array(z.string().max(2400))),
@@ -33,7 +33,7 @@ export function samplePuzzle(type: Puzzle['type']): Puzzle {
 
 export function puzzleInstructions(type: Puzzle['type']): string {
   const shared = 'When the host starts, each teammate receives private clues. Discuss your clues with your team. One operator uses the controls to submit your solution.';
-  if (type === 'relay') return 'Each team gets at least four expressions in relay order. Teams with fewer than four players repeat players in the order, so some players get multiple numbered steps. Teams of four or more get one expression per player. Use PEMDAS to solve your expression, then tell the next player your result. Multiplication and division are evaluated left to right, followed by addition and subtraction left to right. Use the previous answer in the blank. Only the final player submits. Wrong answers add a mistake with no lockout. Fastest completion wins. Each mistake costs half the clue value when results are shown.';
+  if (type === 'relay') return 'Each team gets at least four expressions in relay order. Teams with fewer than four players repeat players in the order, so some players get multiple numbered steps. Teams of four or more get one expression per player. Use PEMDAS to solve your expression, then tell the next player your result. Multiplication and division are evaluated left to right, followed by addition and subtraction left to right. Use the previous answer in the blank. Only the final player submits. Wrong answers add a mistake and lock submissions for one second. Fastest completion wins. Each mistake costs half the clue value when results are shown.';
   if (type === 'bomb') return 'Cut the bomb wires in the correct order to successfully defuse the bomb. Clues are shared among teammates, with one player operating the bomb panel. The operator also receives a clue; some clues are shared when players outnumber clues. Some wires may need to remain uncut. Combine the clues to successfully cut the bomb. Fastest completion wins. Each mistake costs half the clue value when results are shown.';
   if (type === 'code') return shared + '\nCombine your clues to decode the shared message. Your operator submits the answer. Wrong answers count as mistakes. Fastest completion wins. Each mistake costs half the clue value when results are shown.';
   return shared + '\nEach teammate receives event clues. Help your operator arrange all events from earliest to latest. Incorrect orders lock your team out for 10 seconds. Fastest correct completion wins.';

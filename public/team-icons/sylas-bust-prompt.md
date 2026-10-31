@@ -1,0 +1,3 @@
+Built-in image_gen edit. Saved output: sylas-bust.png.
+
+Edit supplied Sylas Qoobee avatar into TOP HALF ONLY, bust portrait. Keep identical face, hair, rounded ears, wing, hands held at chest, Sylas stone and gold bracers and glowing blue chains. End the torso cleanly immediately below the hands/bracers with a simple rounded bust edge. Remove all waist belt, buckle, loincloth, trousers, lower body, legs and feet. Chains should stay beside the bracers, compact and no lower-body shapes. Preserve exact upright pose, cartoon style, colors and facial expression. Transparent background, centered bust with padding.

@@ -1,3 +1,4 @@
+import { selectableTeamIcons } from '../shared/team-icons';
 import { startPuzzle, submitPuzzle, redactPuzzle } from './puzzles';
 import { randomInt, randomUUID, createHash, randomBytes } from 'node:crypto';
 import { contentSchema, emptyContent, points, isClueReady, type Actor, type Command, type Game, type View } from '../shared/model.js';
@@ -7,7 +8,7 @@ export const token = () => randomBytes(32).toString('hex');
 function requireRule(ok: unknown, message: string): asserts ok { if (!ok) throw new Error(message); }
 export function newGame(hostToken: string, name = 'Friday Night Jeopardy'): Game {
   return { ...emptyContent(), name, schemaVersion: 1, id: randomUUID(), code: randomBytes(4).toString('hex').slice(0, 6).toUpperCase(), hostHash: hash(hostToken), version: 0, savedAt: '', phase: 'lobby', board: 0, selectorTeamId: null,
-    teams: ['Qoobsters', 'Qooblings'].map(name => ({ id: randomUUID(), name, score: 0, captain: null, queue: [], last: null })), players: [], current: null, paused: false, recovery: null, ledger: [], processed: {}, finalEntries: {}, finalRemainingMs: 30000, finalDeadline: null, undo: null };
+    teams: ['Qoobsters', 'Qooblings'].map((name, i) => ({ id: randomUUID(), name, icon: selectableTeamIcons[i], score: 0, captain: null, queue: [], last: null })), players: [], current: null, paused: false, recovery: null, ledger: [], processed: {}, finalEntries: {}, finalRemainingMs: 30000, finalDeadline: null, undo: null };
 }
 export function authenticate(g: Game, credential: string): Actor {
   if (credential && hash(credential) === g.hostHash) return { role: 'host' };
@@ -58,7 +59,7 @@ export function fillMissingRepresentatives(g: Game, online: Set<string>) {
 }
 function advanceBoard(g: Game) {
   if (g.board === 0) { g.board = 1; g.introCategory = 0; g.intermission = true; g.musicPlaying = true; }
-  else { g.introCategory = null; g.phase = 'final-wager'; g.undo = null; for (const t of g.teams) g.finalEntries[t.id] = { score: t.score, wager: g.players.some(p => p.teamId === t.id) ? null : 0, answer: '', submitted: false, judged: !g.players.some(p => p.teamId === t.id), correct: null }; }
+  else { g.introCategory = null; g.phase = 'final-wager'; g.musicPlaying = true; g.undo = null; for (const t of g.teams) g.finalEntries[t.id] = { score: t.score, wager: g.players.some(p => p.teamId === t.id) ? null : 0, answer: '', submitted: false, judged: !g.players.some(p => p.teamId === t.id), correct: null }; }
 }
 // Practice uses a separate clue so the real board and player rotation stay intact.
 function startExample(g: Game, requested = false) {
@@ -77,6 +78,7 @@ export function timerRemaining(g: Game, now: number) {
   if (g.current?.deadline !== null && g.current?.deadline !== undefined) g.current.remainingMs = Math.max(0, g.current.deadline - now);
   if (g.finalDeadline !== null) g.finalRemainingMs = Math.max(0, g.finalDeadline - now);
   if (g.current?.pixel?.runningSince != null) { const pixel = g.current.pixel; pixel.elapsedMs = Math.min(30000, pixel.elapsedMs + Math.max(0, now - pixel.runningSince!)); pixel.runningSince = pixel.elapsedMs < 30000 ? now : null; }
+  if (g.current?.textReveal?.runningSince != null) { const timer = g.current.textReveal; timer.elapsedMs += Math.max(0, now - timer.runningSince!); timer.runningSince = now; }
   if (g.current?.group?.runningSince != null) { const group = g.current.group; group.elapsedMs += Math.max(0, now - group.runningSince!); group.runningSince = now; }
 }
 export function advanceTimers(g: Game, now: number) {
@@ -91,6 +93,7 @@ export function pause(g: Game, now: number, reason: string | null = null) {
   if (g.current) g.current.deadline = null;
   if (g.current?.group) g.current.group.runningSince = null;
   if (g.current?.pixel) g.current.pixel.runningSince = null;
+  if (g.current?.textReveal) g.current.textReveal.runningSince = null;
   g.finalDeadline = null;
 }
 function score(g: Game, teamId: string, amount: number, reason: string, playerId?: string) {
@@ -105,9 +108,11 @@ function endActivity(g: Game) {
   if(c.example) return;
   group.penalties ??= {};
   for (const [id, team] of Object.entries(group.puzzle?.teams || {})) {
-    const penalty = team.mistakes * points(g.board, c.row) / 2;
+    const puzzle = (c.exampleClue ?? g.boards[g.board][c.category].clues[c.row]).puzzle;
+    const unfinished = (puzzle?.type === 'relay' || puzzle?.type === 'bomb') && team.finishedMs === null;
+    const penalty = unfinished ? points(g.board, c.row) : team.mistakes * points(g.board, c.row) / 2;
     const difference = penalty - (group.penalties[id] || 0);
-    if (difference) score(g, id, -difference, 'Team activity mistake penalty');
+    if (difference) score(g, id, -difference, unfinished ? 'Unfinished team activity penalty' : 'Team activity mistake penalty');
     group.penalties[id] = penalty;
   }
 }
@@ -137,22 +142,36 @@ export function applyCommand(g: Game, actor: Actor, command: Command, now: numbe
   advanceTimers(g, now);
   const player = g.players.find(x => x.id === actor.playerId);
   if (actor.role === 'player') requireRule(player?.active, 'Your player is inactive.');
-  const playerCommands = ['buzz', 'wager', 'final-answer', 'choose-team', 'submit-group', 'group-done', 'unfinish-group', 'submit-puzzle'];
+  const playerCommands = ['captain', 'set-team-icon', 'buzz', 'wager', 'final-answer', 'choose-team', 'submit-group', 'group-done', 'unfinish-group', 'submit-puzzle'];
   if (actor.role !== 'host') requireRule(playerCommands.includes(type), 'Only the host can do that.');
-  if (g.paused) requireRule(['resume', 'checkpoint', 'edit-player', 'captain', 'adjust-score', 'reset-game', 'set-music', 'play-sound', 'set-auto-sounds'].includes(type), 'The game is paused. Wait for the host to resume.');
+  if (g.paused) requireRule(['set-rules', 'resume', 'checkpoint', 'edit-player', 'captain', 'adjust-score', 'reset-game', 'set-music', 'play-sound', 'set-auto-sounds'].includes(type), 'The game is paused. Wait for the host to resume.');
   const c = g.current;
   const activeClue = c ? c.exampleClue ?? g.boards[g.board][c.category].clues[c.row] : null;
   switch (type) {
+    case 'set-rules':
+      requireRule(typeof p.rules === 'string' && p.rules.trim().length > 0 && p.rules.length <= 12000, 'Enter rules between 1 and 12,000 characters.');
+      g.rules = p.rules.trim(); break;
+    case 'set-team-icon': {
+      requireRule(g.phase === 'lobby', 'Team icons can only be chosen before the game starts.');
+      const team = g.teams.find(t => t.id === player?.teamId);
+      requireRule(player?.active && team?.captain === player.id, 'Only your team captain can choose its icon.');
+      requireRule(['witch','pumpkin','vampire','mummy','devil','piplup'].includes(p.icon), 'Choose a valid Qoobee icon.');
+      requireRule(!g.teams.some(t => t.id !== team.id && t.icon === p.icon), 'That Qoobee is already selected by another team. Choose a different one.');
+      team.icon = p.icon; break;
+    }
     case 'save-content': {
       requireRule(g.phase === 'lobby', 'Boards are locked once the game starts.');
       const content = contentSchema.parse(p); Object.assign(g, content);
       for (const board of g.boards) for (const cat of board) for (const clue of cat.clues) clue.used = false;
       break;
     }
-    case 'add-team':
+    case 'add-team': {
       requireRule(g.phase === 'lobby' && g.teams.length < 12, 'Teams can only be added in the lobby (maximum 12).');
-      requireRule(typeof p.name === 'string' && p.name.trim().length > 0 && p.name.trim().length <= 40, 'Enter a team name up to 40 characters.');
-      g.teams.push({ id: randomUUID(), name: p.name.trim(), score: 0, captain: null, queue: [], last: null }); break;
+      requireRule(typeof p.name === 'string' && p.name.trim().length > 0 && p.name.trim().length <= 9, 'Enter a team name up to 9 characters.');
+      const icon = selectableTeamIcons.find(icon => !g.teams.some(t => t.icon === icon));
+      requireRule(icon, 'All six Qoobee mascots are taken. Remove a team before adding another.');
+      g.teams.push({ id: randomUUID(), name: p.name.trim(), icon, score: 0, captain: null, queue: [], last: null }); break;
+    }
     case 'remove-team': {
       requireRule(g.phase === 'lobby', 'Remove teams before the game starts.');
       requireRule(g.teams.length > 2 && g.teams.some(t => t.id === p.teamId), 'Keep at least two teams.');
@@ -165,7 +184,7 @@ export function applyCommand(g: Game, actor: Actor, command: Command, now: numbe
     }
     case 'rename-team': {
       requireRule(g.phase === 'lobby', 'Team names are locked during play.');
-      const t = g.teams.find(t => t.id === p.teamId); requireRule(t && typeof p.name === 'string' && p.name.trim().length > 0 && p.name.length <= 40, 'Enter a valid team name.'); t.name = p.name.trim(); break;
+      const t = g.teams.find(t => t.id === p.teamId); requireRule(t && typeof p.name === 'string' && p.name.trim().length > 0 && p.name.trim().length <= 9, 'Enter a team name up to 9 characters.'); t.name = p.name.trim(); break;
     }
     case 'choose-team': {
       requireRule(g.phase === 'lobby' && player, 'Team changes are only available in the lobby.');
@@ -193,6 +212,8 @@ export function applyCommand(g: Game, actor: Actor, command: Command, now: numbe
       break;
     }
     case 'captain': {
+      requireRule(g.phase === 'lobby', 'Captains can only be chosen before the game starts.');
+      requireRule(actor.role === 'host' || player?.teamId === p.teamId && g.teams.find(t => t.id === p.teamId)?.captain === player?.id, 'Only the current captain can choose another captain for their own team.');
       const t = g.teams.find(t => t.id === p.teamId); requireRule(t && g.players.some(x => x.id === p.playerId && x.teamId === t.id && x.active), 'Choose an active teammate.'); t.captain = p.playerId; break;
     }
     case 'reset-game':
@@ -226,12 +247,16 @@ export function applyCommand(g: Game, actor: Actor, command: Command, now: numbe
       requireRule(!clue.zoom || (!!clue.image && clue.kind !== 'group' && !clue.boost), 'Zoomed Image needs an image and a normal question.');
       clue.used = true; g.undo = null; g.introCategory = null;
       requireRule(!(clue.kind === 'group' && clue.boost), 'Group activities cannot also be Qoobee Boost clues.');
-      g.current = { id: randomUUID(), category: p.category, row: p.row, state: clue.kind === 'group' || clue.boost ? 'revealed' : g.boards[g.board][p.category].openToAll ? 'open' : 'restricted', representatives: { ...(g.nextRepresentatives ?? selectRepresentatives(g, online)) }, lockedTeams: [], winner: null, buzzId: null, previous: 'restricted', remainingMs: 10000, deadline: clue.kind === 'group' || clue.boost || g.boards[g.board][p.category].openToAll ? null : now + 10000, revealedAnswer: false,
+      g.current = { id: randomUUID(), category: p.category, row: p.row, state: clue.kind === 'group' || clue.boost ? 'revealed' : g.boards[g.board][p.category].openToAll ? 'open' : 'restricted', representatives: { ...(g.nextRepresentatives ?? selectRepresentatives(g, online)) }, lockedTeams: [], winner: null, buzzId: null, previous: 'restricted', remainingMs: 15000, deadline: clue.kind === 'group' || clue.boost || g.boards[g.board][p.category].openToAll ? null : now + 15000, revealedAnswer: false,
         ...(g.boards[g.board][p.category].pixelPerfect || clue.zoom ? { pixel: { elapsedMs: 0, runningSince: now } } : {}),
+        ...(!g.boards[g.board][p.category].openToAll && !g.boards[g.board][p.category].collectAnswers && !g.boards[g.board][p.category].teamBased && clue.kind !== 'group' && !clue.boost ? {textReveal:{elapsedMs:0,runningSince:now}} : {}),
         ...(clue.quotes ? { quotesRevealed: 1 } : {}),
         ...(clue.boost ? { boost: null } : {}), ...(clue.kind === 'group' ? { group: { status: 'ready', mode: clue.groupMode ?? 'time', elapsedMs: 0, runningSince: null, submissions: {}, awards: {} } } : {}) };
       if (g.boards[g.board][p.category].collectAnswers && clue.kind !== 'group' && !clue.boost) { g.current.state = 'revealed'; g.current.deadline = null; g.current.group = {teamAnswers:true,submissionScope:'team',status:'playing',mode:'score',elapsedMs:0,runningSince:now,submissions:{},awards:{}}; }
-      if (g.current?.group?.teamAnswers) g.musicPlaying = true;
+      if (g.current?.group?.teamAnswers) {
+        g.musicPlaying = true;
+        for (const team of g.teams) if (g.players.some(p => p.id === team.captain && p.teamId === team.id && p.active)) g.current.representatives[team.id] = team.captain!;
+      }
       break;
     }
     case 'previous-quote':
@@ -250,6 +275,17 @@ export function applyCommand(g: Game, actor: Actor, command: Command, now: numbe
     case 'reopen-buzzers':
       requireRule(c && !c.group && !activeClue?.boost && c.lockedTeams.length > 0 && c.state !== 'answering', 'No locked teams to reopen.');
       c.lockedTeams = []; c.state = 'open'; c.winner = null; c.buzzId = null; c.deadline = null; c.revealedAnswer = false; g.undo = null; break;
+    case 'cut-audience-wire': {
+      const bomb=c?.group?.puzzle?.audienceBomb;
+      requireRule(bomb && p.attemptId===c?.id && !bomb.defused, 'No active audience bomb.');
+      requireRule(now>=bomb.lockedUntil && bomb.items.includes(p.item) && !bomb.progress.includes(p.item), 'Choose an uncut wire after the lockout.');
+      if(p.item===bomb.solution![bomb.progress.length]) {bomb.progress.push(p.item);bomb.defused=bomb.progress.length===bomb.solution!.length;}
+      else {bomb.mistakes++;bomb.lockedUntil=now+1000;}
+      break;
+    }
+    case 'reveal-audience-relay':
+      requireRule(c?.group?.puzzle?.audienceRelay && p.attemptId === c.id, 'No audience relay is active.');
+      c.group.puzzle.audienceRelay.revealed = true; break;
     case 'start-group':
       requireRule(c?.group?.status === 'ready' && c.state === 'revealed' && p.attemptId === c.id, 'This activity is not ready.');
       if (activeClue?.puzzle) startPuzzle(g, c.representatives); if (['bomb','relay'].includes(activeClue?.puzzle?.type || '')) c.group.timeLimitMs = 180000; c.group.status = 'playing'; c.group.runningSince = now; g.musicPlaying = true; break;
@@ -295,7 +331,7 @@ export function applyCommand(g: Game, actor: Actor, command: Command, now: numbe
     case 'undo-end-group':
       requireRule(!c?.example, 'Example rounds cannot be reopened.');
       requireRule(c?.group?.status === 'review' && c.state !== 'resolved' && p.attemptId === c.id, 'No ended activity to resume.');
-      requireRule(!c.group.timeLimitMs || c.group.elapsedMs < c.group.timeLimitMs, 'The three-minute limit has expired.'); for(const [id, amount] of Object.entries(c.group.penalties || {})) if(amount) score(g,id,amount,'Undo activity mistake penalty'); c.group.penalties = {}; c.group.status = 'playing'; c.group.runningSince = now; if(c.group.teamAnswers) c.revealedAnswer = false; g.musicPlaying = true; break;
+      requireRule(!c.group.timeLimitMs || c.group.elapsedMs < c.group.timeLimitMs, 'The three-minute limit has expired.'); for(const [id, amount] of Object.entries(c.group.penalties || {})) if(amount) score(g,id,amount,'Undo activity penalty'); c.group.penalties = {}; c.group.status = 'playing'; c.group.runningSince = now; if(c.group.teamAnswers) c.revealedAnswer = false; g.musicPlaying = true; break;
     case 'lock-group':
       requireRule(c?.group?.status === 'playing' && c.state !== 'resolved' && p.attemptId === c.id, 'No open group activity.');
       endActivity(g); break;
@@ -385,9 +421,12 @@ export function applyCommand(g: Game, actor: Actor, command: Command, now: numbe
     case 'unfinish-activity': requireRule(c?.group && c.state === 'resolved' && p.attemptId === c.id, 'No finished activity to reopen.'); c.state = 'revealed'; c.group.status = 'review'; c.group.runningSince = null; g.undo = null; break;
     case 'close-clue': requireRule(c && c.state !== 'resolved', 'No active clue.'); complete(g); if (!c.group) c.revealedAnswer = true; g.undo = null; break;
     case 'reveal': requireRule(c?.state === 'resolved' && !c.group || c?.group?.teamAnswers && c.group.status === 'review', 'Close a question before revealing the answer.'); c.revealedAnswer = true; g.undo = null; break;
-    case 'return-board':
+    case 'return-board': {
+      const category = c && g.boards[g.board][c.category];
+      const keepRotation = category && (category.openToAll || category.collectAnswers || category.teamBased);
       if(c?.example){requireRule(c.group?.status==='review' || c.state==='resolved','End the example first.');g.current=null;g.musicPlaying=false;g.undo=null;break;}
-      requireRule(c?.state === 'resolved' || c?.group?.status === 'review', 'Finish this clue first.'); g.current = null; g.undo = null; if (g.boards[g.board].every(cat => cat.clues.every(q => q.used))) advanceBoard(g); if (g.phase === 'board') g.nextRepresentatives = selectRepresentatives(g, online); else g.nextRepresentatives = {}; break;
+      requireRule(c?.state === 'resolved' || c?.group?.status === 'review', 'Finish this clue first.'); g.current = null; g.undo = null; if (g.boards[g.board].every(cat => cat.clues.every(q => q.used))) advanceBoard(g); if (g.phase === 'board') { if (!keepRotation) g.nextRepresentatives = selectRepresentatives(g, online); } else g.nextRepresentatives = {}; break;
+    }
     case 'advance-board':
       requireRule(!g.intermission, 'End the intermission first.');
       requireRule(g.phase === 'board' && !c, 'Return to the board first.');
@@ -402,13 +441,13 @@ export function applyCommand(g: Game, actor: Actor, command: Command, now: numbe
       requireRule(g.phase === 'final-wager', 'Wagering is closed.');
       requireRule(Object.values(g.finalEntries).every(e => e.wager !== null) || p.zeroMissing === true, 'Some wagers are missing. Confirm assigning zero to those teams.');
       for (const e of Object.values(g.finalEntries)) if (e.wager === null) e.wager = 0;
-      g.phase = 'final-answer'; g.finalRemainingMs = 30000; g.finalDeadline = null; break;
+      g.phase = 'final-answer'; g.musicPlaying = true; g.finalRemainingMs = 30000; g.finalDeadline = null; break;
     case 'final-answer': {
       requireRule(g.phase === 'final-answer' && player && g.teams.find(t => t.id === player.teamId)?.captain === player.id, 'Only the captain can submit during the answer period.');
       requireRule(typeof p.answer === 'string' && p.answer.trim().length > 0 && p.answer.length <= 4000, 'Enter an answer up to 4,000 characters.');
       const e = g.finalEntries[player.teamId]; e.answer = p.answer.trim(); e.submitted = true; break;
     }
-    case 'lock-answers': requireRule(g.phase === 'final-answer', 'Answers are already locked.'); g.phase = 'final-judge'; g.finalDeadline = null; break;
+    case 'lock-answers': requireRule(g.phase === 'final-answer', 'Answers are already locked.'); g.phase = 'final-judge'; g.musicPlaying = false; g.finalDeadline = null; break;
     case 'present-final': {
       requireRule(g.phase === 'final-judge', 'Final answers are not ready to reveal.');
       requireRule(g.finalEntries[p.teamId] && g.players.some(player => player.teamId === p.teamId), 'Choose a participating team.');
@@ -431,11 +470,12 @@ export function applyCommand(g: Game, actor: Actor, command: Command, now: numbe
     }
     case 'adjust-score': requireRule(Number.isInteger(p.amount) && Math.abs(p.amount) <= 1000000 && (p.reason === undefined || typeof p.reason === 'string' && p.reason.length <= 200), 'Enter a whole-number adjustment.'); score(g, p.teamId, p.amount, p.reason?.trim() || 'Manual score adjustment'); g.undo = null; break;
     case 'pause': requireRule(g.phase !== 'lobby' && g.phase !== 'finished', 'Pause is only available during gameplay.'); requireRule(!g.paused, 'Already paused.'); pause(g, now); break;
-    case 'resume': requireRule(g.paused, 'The game is not paused.'); g.paused = false; g.recovery = null; if (c?.state === 'revealed' && !c.group && !activeClue?.boost) c.state = 'restricted'; if (g.phase === 'board' && !c && g.boards[g.board].every(cat => cat.clues.every(q => q.used))) advanceBoard(g); if (c?.state === 'restricted') { c.remainingMs = Math.min(c.remainingMs, 10000); c.deadline = now + c.remainingMs; } if (c?.group?.status === 'playing') c.group.runningSince = now; if (g.phase === 'final-answer') g.finalDeadline = null; break;
+    case 'resume': requireRule(g.paused, 'The game is not paused.'); g.paused = false; g.recovery = null; if (c?.state === 'revealed' && !c.group && !activeClue?.boost) c.state = 'restricted'; if (g.phase === 'board' && !c && g.boards[g.board].every(cat => cat.clues.every(q => q.used))) advanceBoard(g); if (c?.state === 'restricted') { c.remainingMs = Math.min(c.remainingMs, 15000); c.deadline = now + c.remainingMs; } if (c?.group?.status === 'playing') c.group.runningSince = now; if (g.phase === 'final-answer') g.finalDeadline = null; break;
     case 'checkpoint': break;
     default: throw new Error('Unknown command.');
   }
   if (g.current?.pixel) g.current.pixel.runningSince = !g.paused && !g.current.revealedAnswer && (['restricted', 'open'].includes(g.current.state) || g.current.group?.teamAnswers && g.current.group.status === 'playing') && g.current.pixel.elapsedMs < 30000 ? now : null;
+  if (g.current?.textReveal) g.current.textReveal.runningSince = !g.paused && ['restricted','open'].includes(g.current.state) && !g.current.revealedAnswer ? now : null;
   g.processed[command.id] = { actor: actorKey }; g.version++; return true;
 }
 

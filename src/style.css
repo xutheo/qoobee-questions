@@ -295,3 +295,38 @@
 .welcome-code{display:flex;flex-direction:column;gap:6px;padding:clamp(8px,1vh,18px) clamp(12px,2vw,36px);border:1px solid #efbd6555;border-radius:14px;background:#10192399}.welcome-code strong{font-size:clamp(20px,min(3vw,5vh),56px);letter-spacing:.12em}
 .stream-lobby .stream-scores{flex:0 1 28%;min-height:15vh;max-height:30vh}.stream-lobby .stream-team-members{max-height:17vh}
 @media(max-width:600px){.qoobee-welcome{padding:16px 10px;gap:10px;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) minmax(0,1fr)}.welcome-photo{padding:2px;border-radius:8px}.welcome-title h1{font-size:clamp(22px,6vw,36px)}.welcome-title>p{font-size:11px}}
+.team-icon{width:64px;height:64px;object-fit:contain;flex-shrink:0}
+.team-icon-picker{margin:12px 0}.team-icon-picker summary{cursor:pointer;padding:8px 0}.team-icon-picker>div{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}.team-icon-picker button{display:flex;flex-direction:column;align-items:center;text-transform:capitalize;gap:6px}.team-icon-picker button[aria-pressed=true]{border:2px solid var(--gold,#f2c266);background:#433b28}
+.stream-team-total .team-icon{width:clamp(40px,5vw,80px);height:clamp(40px,5vw,80px)}
+.team-answer-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:18px;width:100%;align-items:stretch}
+.team-answer-card{min-width:0;border:2px solid #52646b;border-radius:16px;padding:18px;background:#14242e}.team-answer-card.is-revealed{border-color:var(--gold)}.team-answer-card h3{font-size:1.4em;margin:8px 0}.team-answer-card .revealed-team-answer{font-size:clamp(20px,2.4vw,40px);margin:12px 0}.team-answer-card .team-icon{width:72px;height:72px}.error-text{color:#ff827b}
+.stream-instructions{overflow:hidden;align-items:stretch;padding:clamp(12px,2vw,32px)}
+.stream-instructions .stream-clue-body{height:100%;flex:1}
+.stream-instructions .game-instructions{margin:0 auto}
+.custom-rules{white-space:pre-wrap;overflow-wrap:anywhere;text-align:left}
+
+/* Size team labels against their own panel, rather than the entire viewport. */
+.stream-scores>div{container-type:inline-size}
+.stream-team-total{gap:clamp(4px,2cqw,16px);white-space:nowrap}
+.stream-team-total>span{white-space:nowrap;overflow-wrap:normal}
+.stream-lobby .stream-team-total{font-size:clamp(16px,10cqw,60px);overflow-wrap:normal}
+.stream-team-total .team-icon{width:clamp(24px,15cqw,80px);height:clamp(24px,15cqw,80px);flex-shrink:0}
+.stream-lobby .stream-team-members{font-size:clamp(12px,5.6cqw,34px);gap:2cqw}
+.stream-team-members li{white-space:nowrap}
+.stream-lobby .stream-team-members li{padding:4px 0}
+
+.stream-lobby .stream-team-total .team-icon{width:clamp(24px,18cqw,100px);height:clamp(24px,18cqw,100px)}
+.game-instructions{text-align:left}
+.game-instructions h2{text-align:center}.game-instructions li{font-size:clamp(20px,2.4vw,36px)}.game-instructions li::marker{font-weight:700}.game-instructions ol{padding-left:3em}.question-card .game-instructions li{font-size:22px}
+
+.stream-screen .team-answer-reveal>h2{font-size:clamp(36px,3.2vw,56px);font-weight:600;line-height:1.15;margin-bottom:24px}
+
+.final-wager-category h1{color:var(--gold);margin:12px 0 36px}.final-wager-category h2{font-size:clamp(28px,3vw,48px)}
+
+.audience-relay h2{font-size:clamp(26px,3vw,48px);color:var(--gold)}.audience-relay ol{display:table;margin:20px auto;text-align:left;font-size:clamp(20px,2.6vw,42px);line-height:1.6}.audience-relay>strong{font-size:clamp(26px,3vw,48px);color:var(--gold)}
+
+.audience-bomb h2{font-size:clamp(28px,3vw,48px);color:var(--gold)}.audience-bomb-layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:center}.audience-bomb ol{text-align:left;font-size:clamp(18px,2vw,30px);line-height:1.5}.stream-screen .audience-bomb .wire:disabled{opacity:1}.audience-bomb .wire{font-size:20px}
+
+.stream-buzz-winner .team-icon{width:clamp(40px,5vw,80px);height:clamp(40px,5vw,80px);object-fit:contain;flex-shrink:0}.stream-buzz-winner>strong{min-width:0}
+.stream-screen .audience-bomb ol{font-size:clamp(24px,2.6vw,40px)}.stream-screen .audience-bomb .wire-drawing{height:40px;max-height:40px}.stream-screen .audience-bomb .wire-box{padding:12px;gap:5px}.stream-screen .audience-bomb .wire{padding:6px 12px}
+.stream-screen .audience-bomb-layout{grid-template-columns:2fr 1fr}

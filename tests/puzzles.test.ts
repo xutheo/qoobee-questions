@@ -99,7 +99,7 @@ test('bombs finish after the required subset; omitted wires are mistakes and tim
  const timeline=samplePuzzle('timeline');timeline.solution.pop();assert.equal(puzzleReady(timeline),false);
 });
 
-test('every bomb player including operator receives a clue even when only three clues exist',async()=>{
+test('bomb clues are assigned once to nonoperators and extra players receive none',async()=>{
  const {startPuzzle}=await import('../server/puzzles');
  const {g,config}=setup('bomb');const teamId=g.teams[0].id;
  const operator=g.current!.group!.puzzle!.teams[teamId].operator;
@@ -107,12 +107,14 @@ test('every bomb player including operator receives a clue even when only three 
  config.hints=['First clue','Second clue','Third clue'];
  startPuzzle(g,g.current!.representatives);
  let assignments=g.current!.group!.puzzle!.teams[teamId].assignments;
- assert.equal(assignments[operator].length,1);
+ assert.equal(assignments[operator].length,0);
  assert.deepEqual(new Set(Object.values(assignments).flat()),new Set(config.hints));
  assert.ok(Object.entries(assignments).filter(([id])=>id!==operator).every(([,hints])=>hints.length===1));
+ g.players.push({id:'spare',name:'Spare',teamId,tokenHash:hash('spare'),active:true,selections:0});
+ startPuzzle(g,g.current!.representatives);assert.equal(g.current!.group!.puzzle!.teams[teamId].assignments.spare.length,0);
  config.hints.push('Fourth clue');startPuzzle(g,g.current!.representatives);
  assignments=g.current!.group!.puzzle!.teams[teamId].assignments;
- assert.ok(Object.values(assignments).every(hints=>hints.length===1));
+ assert.equal(assignments[operator].length,0);assert.equal(Object.values(assignments).flat().length,4);
  assert.deepEqual(new Set(Object.values(assignments).flat()),new Set(config.hints));
 });
 
@@ -149,7 +151,7 @@ test('color substitution is simultaneous and supports twelve distinct team mappi
  assert.equal(new Set(mappings.map(m=>m.red)).size,12);
 });
 
-test('math relay sends private expressions, accepts only final player, tracks mistakes without lockout',()=>{
+test('math relay sends private expressions, accepts only final player, enforces a one-second mistake lockout',()=>{
  const {g,config,team,cmd,payload,actor,online}=setup('relay');
  assert.ok(puzzleReady(config));assert.equal(team.relay!.order.length,4);
  assert.equal(team.operator,team.relay!.order.at(-1));
@@ -157,9 +159,10 @@ test('math relay sends private expressions, accepts only final player, tracks mi
  const other=g.players.find(p=>p.teamId===g.teams[0].id&&p.id!==team.operator)!;
  assert.throws(()=>cmd('submit-puzzle',{...payload,answer:String(team.relay!.answer)},1500,{role:'player',playerId:other.id}),/operator/);
  cmd('submit-puzzle',{...payload,answer:String(team.relay!.answer!+1)},2000,actor);
- assert.equal(team.mistakes,1);assert.equal(team.lockedUntil,0);
- cmd('submit-puzzle',{...payload,answer:String(team.relay!.answer)},2001,actor);
- assert.equal(team.finishedMs,1001);
+ assert.equal(team.mistakes,1);assert.equal(team.lockedUntil,2000);
+ assert.throws(()=>cmd('submit-puzzle',{...payload,answer:String(team.relay!.answer)},2999,actor),/one second/);
+ cmd('submit-puzzle',{...payload,answer:String(team.relay!.answer)},3000,actor);
+ assert.equal(team.finishedMs,2000);
  for(const role of [actor,{role:'player',playerId:other.id} as Actor,{role:'display'} as Actor]) {
    const view=publicView(g,role,online,2001,null);
    for(const state of Object.values(view.current!.group!.puzzle!.teams)) {
@@ -181,7 +184,7 @@ test('generated relay expressions evaluate to the server answer for different si
    for(const [i,expression] of relay.expressions.entries()) {
      assert.doesNotMatch(expression, /[()]/);
      const parts=expression.split(' ');
-     assert.equal((parts.length-1)/2,difficulty);
+     assert.equal((parts.length-1)/2,[2,3,5,6,7][difficulty-1]);
      value=i===0?Number(parts[0]):value;
      // Independently evaluate the generated numeric-only expression using JS precedence.
      const arithmetic=[String(value),...parts.slice(1)].join(' ').replaceAll('×','*').replaceAll('÷','/').replaceAll('−','-');
@@ -204,7 +207,7 @@ test('relay uses PEMDAS and left-to-right for equal precedence',async()=>{
 test('fixed sample relays use the published questions and PEMDAS answers',async()=>{
  const {fixedRelay}=await import('../server/relay');
  const {sampleRelays}=await import('../shared/sample-relays');
- assert.deepEqual(sampleRelays.map(expressions=>fixedRelay(expressions).answer),[19,13,44,74,18]);
+ assert.deepEqual(sampleRelays.map(expressions=>fixedRelay(expressions).answer),[12,119,63,137,158]);
 });
 
 test('relays allocate at least four steps fairly and only the final step owner submits',()=>{
@@ -228,22 +231,61 @@ test('relays allocate at least four steps fairly and only the final step owner s
 });
 
 test('puzzle penalties apply on review, undo cleanly, and never double charge',()=>{
- const {g,team,cmd,payload}=setup('bomb');team.mistakes=2;
+ const {g,team,cmd,payload}=setup('bomb');team.mistakes=2;team.finishedMs=500;
  assert.equal(g.teams[0].score,0);cmd('lock-group',payload,2000);assert.equal(g.teams[0].score,-100);
  cmd('undo-end-group',payload,3000);assert.equal(g.teams[0].score,0);
  team.mistakes=3;cmd('lock-group',payload,4000);assert.equal(g.teams[0].score,-150);
  cmd('close-clue',{},5000);assert.equal(g.teams[0].score,-150);
  assert.ok(validateGame(g));
 });
-test('bomb and relay expire after three minutes of active time and deduct mistakes once',async()=>{
+test('bomb and relay expire after three minutes of active time and penalize unfinished teams once',async()=>{
  const {advanceTimers}=await import('../server/game');
  for(const type of ['bomb','relay'] as const){
   const {g,team,cmd,payload}=setup(type);team.mistakes=1;
   assert.equal(g.current!.group!.timeLimitMs,180000);assert.equal(g.musicPlaying,true);
   cmd('pause',{},61000);advanceTimers(g,161000);assert.equal(g.current!.group!.elapsedMs,60000);
   cmd('resume',{},161000);advanceTimers(g,280999);assert.equal(g.current!.group!.status,'playing');
-  advanceTimers(g,281000);assert.equal(g.current!.group!.status,'review');assert.equal(g.musicPlaying,false);assert.equal(g.teams[0].score,-50);
-  advanceTimers(g,300000);assert.equal(g.teams[0].score,-50);
+  advanceTimers(g,281000);assert.equal(g.current!.group!.status,'review');assert.equal(g.musicPlaying,false);assert.equal(g.teams[0].score,-100);
+  advanceTimers(g,300000);assert.equal(g.teams[0].score,-100);
   assert.throws(()=>cmd('undo-end-group',payload,300000),/expired/);
+ }
+});
+
+
+test('audience relay has four matching-difficulty steps and a host-only persisted reveal',()=>{
+ const {g,cmd,payload,actor,online}=setup('relay');
+ const audience=g.current!.group!.puzzle!.audienceRelay!;
+ assert.equal(audience.expressions.length,4);
+ const difficulty=g.boards[0][0].clues[0].puzzle!.relayDifficulty || 2;
+ const operations=[2,3,5,6,7][difficulty-1];
+ assert.ok(audience.expressions.every(e=>(e.split(' ').length-1)/2===operations));
+ const display=()=>publicView(g,{role:'display'},online,1000,null).current!.group!.puzzle!.audienceRelay!;
+ assert.equal(display().answer,undefined);assert.equal(display().revealed,false);
+ assert.throws(()=>cmd('reveal-audience-relay',payload,1100,actor),/host/);
+ cmd('reveal-audience-relay',payload,1200);
+ assert.equal(display().answer,audience.answer);assert.equal(display().revealed,true);
+ assert.ok(validateGame(g));
+});
+
+
+test('audience bombs have five independent levels and only host cuts update their module',async()=>{
+ const {audienceBombs}=await import('../server/audience-bomb');
+ const {startPuzzle}=await import('../server/puzzles');
+ assert.equal(audienceBombs.length,5);
+ for(let row=0;row<5;row++){
+ const {g,cmd,actor,online}=setup('bomb');
+ g.boards[0][0].clues[row]=structuredClone(g.boards[0][0].clues[0]);g.current!.row=row;
+ startPuzzle(g,g.current!.representatives);
+ const bomb=g.current!.group!.puzzle!.audienceBomb!,payload={attemptId:g.current!.id};
+ assert.deepEqual(bomb.hints,audienceBombs[row].hints);
+ assert.equal(publicView(g,{role:'display'},online,1000,null).current!.group!.puzzle!.audienceBomb!.solution,undefined);
+ assert.throws(()=>cmd('cut-audience-wire',{...payload,item:bomb.solution![0]},2000,actor),/host/);
+ const teams=structuredClone(g.current!.group!.puzzle!.teams);
+ const wrong=bomb.items.find(x=>x!==bomb.solution![0])!;
+ cmd('cut-audience-wire',{...payload,item:wrong},2000);assert.equal(bomb.mistakes,1);
+ assert.throws(()=>cmd('cut-audience-wire',{...payload,item:bomb.solution![0]},2500),/lockout/);
+ bomb.solution!.forEach((item,i)=>cmd('cut-audience-wire',{...payload,item},3000+i));
+ assert.equal(bomb.defused,true);assert.deepEqual(g.current!.group!.puzzle!.teams,teams);
+ assert.ok(g.teams.every(t=>t.score===0));assert.ok(validateGame(g));
  }
 });

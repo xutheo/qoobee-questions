@@ -1,0 +1,4 @@
+import React from 'react';
+export function BombWire({cut}:{cut:boolean}) {
+ return <svg className="wire-drawing" viewBox="0 0 320 80" aria-hidden="true"><rect x="4" y="24" width="27" height="32" rx="5" className="wire-terminal"/><rect x="289" y="24" width="27" height="32" rx="5" className="wire-terminal"/>{cut ? <><path d="M 24 40 C 65 40 76 10 112 24 L 144 18" className="wire-cable"/><path d="M 176 62 L 202 52 C 248 75 259 40 296 40" className="wire-cable"/><path d="M 144 18 l 9 -4 M 176 62 l -9 4" className="wire-copper"/></> : <><path d="M 24 40 C 80 40 70 5 126 26 S 238 76 260 50 Q 274 40 296 40" className="wire-shadow"/><path d="M 24 40 C 80 40 70 5 126 26 S 238 76 260 50 Q 274 40 296 40" className="wire-cable"/><path d="M 24 37 C 80 37 70 2 126 23 S 238 73 260 47 Q 274 37 296 37" className="wire-shine"/></>}</svg>;
+}
