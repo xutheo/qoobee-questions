@@ -332,3 +332,5 @@
 .stream-screen .audience-bomb-layout{grid-template-columns:2fr 1fr}
 
 .stream-screen .puzzle-results>h2{font-size:clamp(48px,5vw,80px);font-weight:700;line-height:1.15;margin-bottom:20px}
+
+.keep-awake{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 18px;font-size:12px;color:var(--muted)}.keep-awake label{display:flex;align-items:center;gap:8px;margin:0}.keep-awake input{width:auto;margin:0;accent-color:var(--gold)}
