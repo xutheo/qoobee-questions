@@ -1,4 +1,5 @@
 import {KeepAwake} from './keep-awake';
+import { QoobeePlan, PlanAudience } from './qoobee-plan';
 import { RulesEditor } from './rules-editor';
 import { QuoteList, QuoteControls } from './quotes';
 import { ScoreValue, ActivityTimer, StreamMusic } from './presentation-controls';
@@ -44,11 +45,13 @@ function download(data: unknown, name: string) { const url = URL.createObjectURL
 function Logo() { return <span className="logo"><img className="logo-image" src={`${basePath}qoobee-transparent.png`} alt=""/>Qoobee Questions</span>; }
 function App() {
   const params = new URLSearchParams(location.search);
+  const [homeTab, setHomeTab] = useState(params.get('plan') === 'host' ? 'plan' : 'quiz');
   const [session, setSession] = useState<Session | null>(() => params.get('display') ? { gameId: params.get('game') || '', role: 'display', token: '' } : library().find(s => s.gameId === params.get('game') && s.role === (params.get('role') || 'host')) || null);
   const [error, setError] = useState('');
   function enter(s: SavedSession) { remember(s); history.replaceState({}, '', `?game=${s.gameId}&role=${s.role}`); setError(''); setSession(s); }
   function leave() { history.replaceState({}, '', basePath); setSession(null); }
-  return <><div className="ambient"/>{session ? <GameRoom session={session} leave={leave} onError={setError}/> : <Home enter={enter} onError={setError}/>} {error && <div className="toast" role="alert"><span>{error}</span><button className="icon-btn" onClick={() => setError('')} aria-label="Dismiss message">×</button></div>}</>;
+  if (params.get('plan') === 'display') return <PlanAudience/>;
+  return <><div className="ambient"/>{!session && <nav className="plan-tabs" aria-label="Game modes">{[['quiz','Qoobee Questions'],['plan',"Qoobee’s Plan"]].map(([tab,label])=><button key={tab} aria-current={homeTab===tab?'page':undefined} onClick={()=>{setHomeTab(tab);history.replaceState({},'',tab==='plan'?`${basePath}?plan=host`:basePath);}}>{label}</button>)}</nav>}{session ? <GameRoom session={session} leave={leave} onError={setError}/> : homeTab==='plan'?<QoobeePlan/>:<Home enter={enter} onError={setError}/>} {error && <div className="toast" role="alert"><span>{error}</span><button className="icon-btn" onClick={() => setError('')} aria-label="Dismiss message">×</button></div>}</>;
 }
 function Home({ enter, onError }: { enter: (s: SavedSession) => void; onError: (e: string) => void }) {
   const [code, setCode] = useState((new URLSearchParams(location.search).get('join') || '').trim().toUpperCase());

@@ -2,7 +2,27 @@
 
 A host-led multiplayer Jeopardy app with fair team rotation, live buzzers, two five-category boards, Final Jeopardy, and automatic game recovery from disk. No database or external account is required.
 
-## Run it
+## Qoobee’s Plan
+
+The home page has a **Qoobee’s Plan** tab for an offline, host-operated three-team gauntlet. It also opens directly at `?plan=host`. No player phones are needed. All gauntlet gameplay runs on static hosting. Hidden Word uses host-entered clues and similarity percentages; no AI service or API key is needed.
+
+1. Name three teams (each starts with 1,000 points), then start the gauntlet. Before starting, the audience sees only the centered Qoobee’s Plan title and the three team boxes at the bottom.
+2. Open **Audience screen** on the same computer/browser and share only that window. Keep the host console private: it contains secret equations, cubes, words, and pending answers.
+3. Collect category wagers, show the game’s rules on the audience screen, then start each game: Count the Rectangles → Equation Decrypto → Memory Poker → Gradation → Hidden Word.
+4. Enter spoken buzzes and answers in the host console. The audience screen updates automatically. Count the Rectangles finishes at 3 points; Memory finishes at 5. Equation Decrypto and Gradation use all three round-robin pairings, with spectator wagers locked before each match.
+5. Resolve tied game scores in person except in round-robin games, where tied teams split the combined placement rewards and first-place ties refund category wagers. Award 300 / 200 / 100 and settle category wagers. Winning wagers earn the stake in profit; losing wagers lose the stake. Category stakes are reserved when validating spectator wagers.
+
+Progress is saved in this browser’s local storage. Use **Undo last action** to correct a host entry (undo history lasts until reload); export a private backup to move or safeguard a game. Only one host console should be open. The audience window does not receive unrevealed secret inputs.
+
+Host tools include **Next game**, which can finish and award the current game or skip it without awards. Skipping voids outstanding wagers and retains already settled scores. **Adjust points** can add/subtract or set exact overall and current-game scores; changes are logged and undoable. Current-game scores can be edited before placements are awarded. Overall scores cannot be reduced below active reserved wagers.
+
+Count the Rectangles offers Easy (3–5 rows and columns), Medium (6–7 rows and columns, with or without holes), and Hard (irregular connected shapes and the pictured 8×8 perforated board) generators. Choose Puzzle difficulty before showing a puzzle; the choice carries to the next round. Visible cells are editable and may contain blanks or negative numbers. Blank cells count as zero, but missing cells are holes: no valid rectangle can include a hole. The host records the first team to buzz and enters its count. A correct answer earns 1 point; wrong answers lock the team out without deducting points. The host can allow locked teams to re-answer. Puzzles allow five minutes to buzz; there is no time limit once a team is answering. First to three wins. The private answer key enumerates every grid-aligned rectangle. Old active Tower saves start the replacement game’s rules with game points reset, preserving gauntlet balances and wagers.
+
+Other rule adaptations: Memory uses illustrated playing cards and host-controlled individual reveals, with two team-colored chips and specific hand names. The whole board flips before individual hand reveals. Two-way ties award 0.5 points each; three-way ties award none. Memorization lasts 30 seconds. Equation Decrypto collects both guesses privately and publishes both results together, recording simultaneous solves as draws. Gradation plays one seven-cup match per pairing, allowing draws. Both games cap spectator bets at 150; draws refund spectator wagers. Hidden Word uses editable English noun envelopes, simultaneous guesses, three clue stages with thresholds of 90%, 93%, and 95%, and double points in round two. A host-word practice round lets all three teams guess without scoring. After ten unsuccessful clues in a set, the highest-scoring entered clue is used automatically. The host enters and publishes all clues and percentages. Its Piece-funded extra-answer option is omitted because this gauntlet has no Pieces.
+
+Validation: `npm test`, `npm run build`, and `npx playwright test --config plan.playwright.config.ts` (local Microsoft Edge browser).
+
+## Running the app
 
 Requires Node.js 22 or later (developed and tested with Node 24).
 
@@ -262,3 +282,4 @@ Choose **Mental Math Relay** in a question's type menu. Set difficulty (1–5) a
 
 The host broadcasts the relay with **Broadcast clues & start**. Wrong numeric answers add a mistake without a lockout, and elapsed time continues until the correct answer arrives. Results rank completed teams by mistakes, then time. **End activity**, **Undo end activity**, and team point awards work as for other team puzzles. Relay order, expressions, answer, and progress persist across reconnects and recovery. The sample collection contains five relay difficulty levels in board two's third category.
 Relay difficulty now sets the number of operations in each private expression: levels 1–5 use 1–5 operations per player. Expressions use standard PEMDAS without unnecessary parentheses: multiplication and division first, then addition and subtraction, left to right within each precedence level. Answers remain positive whole numbers.
+
