@@ -1,0 +1,22 @@
+import {test,expect} from '@playwright/test';
+import express from 'express';
+import {createServer} from 'node:http';
+import {createServer as createViteServer} from 'vite';
+import {registerPlanSessions} from '../server/plan-sessions';
+import {newPlan} from '../shared/plan';
+let http:ReturnType<typeof createServer>,vite:Awaited<ReturnType<typeof createViteServer>>;
+test.beforeAll(async()=>{const app=express();app.use(express.json());registerPlanSessions(app);vite=await createViteServer({server:{middlewareMode:true,hmr:false},appType:'spa'});app.use(vite.middlewares);http=createServer(app);await new Promise<void>(r=>http.listen(3202,'127.0.0.1',r));});
+test.afterAll(async()=>{await vite.close();await new Promise<void>(r=>http.close(()=>r()));});
+test('phone controller syncs a separate laptop display and transfers control safely',async({browser,request})=>{
+ const origin='http://127.0.0.1:3202';const state=newPlan();state.game=4;state.phase='play';state.word.practice=false;state.word.phase='clue';state.word.chosen[0]='forest';
+ const created=await request.post(origin+'/api/plan-sessions',{data:state});const {id,token}=await created.json();
+ const phone=await browser.newContext({viewport:{width:390,height:844}}),laptop=await browser.newContext();const host=await phone.newPage(),display=await laptop.newPage();
+ await host.goto(`${origin}/?plan=host&planRoom=${id}#${token}`);await display.goto(`${origin}/?plan=display&planRoom=${id}`);
+ await expect(host.getByText('Shared display connected',{exact:true})).toBeVisible();await expect(display.getByRole('heading',{name:'Hidden Word',exact:true})).toBeVisible();
+ const publicResponse=await request.get(`${origin}/api/plan-sessions/${id}/display`);expect(JSON.stringify(await publicResponse.json())).not.toContain('forest');
+ await host.getByLabel('Clue word',{exact:true}).fill('woodland');await host.getByLabel('Similarity (%)',{exact:true}).fill('95');await host.getByRole('button',{name:'Publish clue and similarity'}).click();await expect(display.locator('.plan-clue-flash')).toContainText('woodland');
+ await display.reload();await expect(display.locator('.plan-clues').first()).toContainText('woodland');
+ const intruder=await request.post(`${origin}/api/plan-sessions/${id}/claim`,{data:{}});expect(intruder.status()).toBe(403);
+ const takeover=await request.post(`${origin}/api/plan-sessions/${id}/claim`,{headers:{Authorization:`Bearer ${token}`},data:{}});expect(takeover.ok()).toBeTruthy();await expect(host.getByRole('alert')).toContainText('Control moved');
+ await phone.close();await laptop.close();
+});

@@ -1,0 +1,16 @@
+import React,{useEffect,useRef,useState} from 'react';
+import {basePath,serverUrl,tunnelHeaders} from './environment';
+import type {Plan} from '../shared/plan';
+export type RemotePlan={id:string;token:string;controller:string};
+export async function planRequest(path:string,body?:unknown,token?:string){const r=await fetch(`${serverUrl}/api/plan-sessions${path}`,{method:body===undefined?'GET':'POST',headers:{...tunnelHeaders,'Content-Type':'application/json',...(token?{Authorization:`Bearer ${token}`}:{})},...(body===undefined?{}:{body:JSON.stringify(body)})});const data=await r.json().catch(()=>{throw new Error('Shared play needs the running game server. Start npm run dev on the laptop.');});if(!r.ok)throw new Error(data.error||'Connection failed.');return data;}
+export function usePlanPublisher(state:Plan,remote?:RemotePlan){
+ const latest=useRef(state);latest.current=state;const [status,setStatus]=useState('Connecting to display…'),[blocked,setBlocked]=useState(false);
+ useEffect(()=>{if(!remote)return;let stopped=false,timer:ReturnType<typeof setTimeout>;const send=async()=>{try{await planRequest(`/${remote.id}/state`,{controller:remote.controller,state:latest.current},remote.token);if(!stopped){setStatus('Shared display connected');setBlocked(false);}}catch(e){if(!stopped){setStatus((e as Error).message);setBlocked(/Control moved|Session expired/.test((e as Error).message));}}finally{if(!stopped)timer=setTimeout(send,400);}};void send();return()=>{stopped=true;clearTimeout(timer);};},[remote]);
+ return {status,blocked};
+}
+export function PlanSharing({state,remote}:{state:Plan;remote?:RemotePlan}){
+ const [error,setError]=useState(''),[origin,setOrigin]=useState(location.origin);
+ const host=remote?`${origin}${basePath}?plan=host&planRoom=${remote.id}#${remote.token}`:'',display=remote?`${origin}${basePath}?plan=display&planRoom=${remote.id}`:'';
+ useEffect(()=>{const saved=sessionStorage.getItem('plan-network-origin');if(saved)setOrigin(saved);},[]);
+ return <details className="plan-sharing"><summary>Phone control / laptop display</summary>{remote?<><p>Open the private control link on your phone. Opening it transfers control to that device. Open the display link on your laptop.</p><label>Website origin for links<input value={origin} onChange={e=>setOrigin(e.target.value.replace(/\/$/,''))}/></label><label>Private phone control link<input readOnly value={host} onFocus={e=>e.target.select()}/></label><label>Laptop display link<input readOnly value={display} onFocus={e=>e.target.select()}/></label><a className="button" href={display} target="qoobee-plan-audience" rel="noopener">Open shared display</a></>:<><p>Keep the game server running on the laptop. Connect both devices to the same Wi-Fi, then create a shared session.</p><button onClick={async()=>{try{const data=await planRequest('',state);const local=['localhost','127.0.0.1'].includes(location.hostname);if(local&&data.addresses[0])sessionStorage.setItem('plan-network-origin',data.addresses[0]);location.href=`${basePath}?plan=host&planRoom=${data.id}#${data.token}`;}catch(e){setError((e as Error).message);}}}>Create shared session</button></>}{error&&<p role="alert">{error}</p>}</details>;
+}

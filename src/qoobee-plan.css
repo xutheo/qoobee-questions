@@ -105,3 +105,5 @@
 .plan-community-slot{height:calc(var(--poker-card-height) * 1.4);min-width:0}
 .plan-community .plan-community-slot svg{height:100%;width:100%}
 @media(max-width:650px){.plan-poker-board .plan-community{width:240px}}
+.plan-sharing{display:grid;gap:12px}.plan-sharing label{display:grid;gap:6px;margin:12px 0}.plan-sharing input{width:100%;min-width:0}.plan-connection-error{position:fixed;bottom:12px;left:12px;z-index:30;background:#682b38;padding:10px;border-radius:8px;color:white}
+@media(max-width:700px){.plan-layout{display:flex;flex-direction:column}.plan-layout>.plan-controls{order:-1}.plan-toolbar{flex-wrap:wrap}}

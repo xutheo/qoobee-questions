@@ -1,3 +1,4 @@
+import {registerPlanSessions} from './plan-sessions';
 import { statePatch } from '../shared/state-patch';
 import express from 'express';
 import { createServer } from 'node:http';
@@ -61,6 +62,7 @@ function credential(req: express.Request) { return req.headers.authorization?.re
 function host(req: express.Request) { const r = find(String(req.params.id)); if (authenticate(r.game, credential(req)).role !== 'host') throw new Error('Host access required.'); return r; }
 app.use('/api', corsMiddleware(origins));
 app.use(express.json({ limit: '16mb' }));
+registerPlanSessions(app);
 app.use((_req, res, next) => { res.setHeader('X-Content-Type-Options', 'nosniff'); res.setHeader('Referrer-Policy', 'same-origin'); next(); });
 // Lightweight per-IP rate limiting; connection and command limits also apply below.
 const attempts = new Map<string, { count: number; since: number }>();
