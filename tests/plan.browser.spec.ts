@@ -69,12 +69,12 @@ test('gradation hides cup positions, resolves one seven-cup match',async({page,c
 test('hidden word simultaneous guesses, staged setter points and double second round',async({page})=>{
  const s=newPlan();s.phase='play';s.game=4;s.word.practice=false;s.word.envelopes=[['forest','mirror','bridge','pillow','thunder'],['ocean','clock','garden','shadow','bottle'],['candle','window','river','ladder','feather']];await seed(page,s);
  for(let round=0;round<2;round++){
- for(let team=0;team<3;team++)await page.getByLabel(`Secret word for Team ${String.fromCharCode(65+team)}`).selectOption(s.word.envelopes[team][round]);
+ const selected:string[]=[];for(let team=0;team<3;team++){const select=page.getByLabel(`Secret word for Team ${String.fromCharCode(65+team)}`);selected.push(await select.locator('option').nth(1).getAttribute('value') as string);await select.selectOption(selected[team]);}if(round===1)for(const word of s.word.chosen.slice(0,3))await expect(page.locator(`select[aria-label^="Secret word"] option[value="${word}"]`)).toHaveCount(0);else s.word.chosen.splice(0,3,...selected);
  await page.getByRole('button',{name:`Lock words and begin round ${round+1}`}).click();
  for(let setter=0;setter<3;setter++){
  await page.getByLabel('Clue word',{exact:true}).fill('related');await page.getByLabel('Similarity (%)',{exact:true}).fill('95');
  await page.getByRole('button',{name:'Publish clue and similarity'}).click();
- for(let i=0;i<3;i++)if(i!==setter)await page.getByLabel(`Team ${String.fromCharCode(65+i)}’s answer`).fill(s.word.envelopes[setter][round]);
+ for(let i=0;i<3;i++)if(i!==setter)await page.getByLabel(`Team ${String.fromCharCode(65+i)}’s answer`).fill(selected[setter]);
  await page.getByRole('button',{name:'Reveal answers and score stage'}).click();await page.getByRole('button',{name:'Continue',exact:true}).click();
  }
  }
@@ -207,12 +207,12 @@ test('pictured rectangle boards fit the audience while using more vertical space
  const audience=await context.newPage();await audience.setViewportSize({width:1280,height:720});
  for(const r of rectangleExamples()){const s=newPlan();s.phase='play';s.rectangles=r;s.rectangles.phase='open';await seed(page,s);await audience.goto('/?plan=display');const box=await audience.locator('.plan-number-grid').boundingBox();expect(box!.height).toBeGreaterThan(350);expect(await audience.evaluate(()=>document.documentElement.scrollHeight)).toBeLessThanOrEqual(722);await page.getByRole('button',{name:'End round and reveal count'}).click();expect(await audience.evaluate(()=>document.documentElement.scrollHeight)).toBeLessThanOrEqual(722);}
 });
-test('practice includes all teams, automatic fallback opens guesses, and scores stay unchanged',async({page,context})=>{
+test('practice includes all teams, host fallback opens guesses, and scores stay unchanged',async({page,context})=>{
  const s=newPlan();s.game=4;s.phase='play';await seed(page,s);await page.getByLabel('Practice word bank').selectOption('forest');await page.getByRole('button',{name:'Start practice round'}).click();
  await expect(page.getByRole('button',{name:'Estimate similarity with AI'})).toHaveCount(0);
  for(let i=0;i<10;i++){await page.getByLabel('Clue word',{exact:true}).fill('clue'+i);await page.getByLabel('Similarity (%)',{exact:true}).fill('80');await page.getByRole('button',{name:'Publish clue and similarity'}).click();}
- await expect(page.getByText('Highest-scoring entered clue: clue0 · 80%')).toBeVisible();
- for(const team of ['A','B','C'])await page.getByLabel(`Team ${team}’s answer`).fill('forest');await page.getByRole('button',{name:'Reveal answers and score stage'}).click();await expect(page.locator('.plan-scores').getByText('Points: 0',{exact:true})).toHaveCount(3);await page.getByRole('button',{name:'Finish practice and prepare game'}).click();await expect(page.getByRole('button',{name:'Lock words and begin round 1'})).toBeVisible();
+ await expect(page.getByLabel('Host fallback clue')).toBeVisible();await page.getByLabel('Host fallback clue').fill('woodland');await page.getByLabel('Host fallback similarity (%)').fill('96');await page.getByRole('button',{name:'Submit host clue'}).click();await expect(page.getByText('Host clue: woodland · 96%')).toBeVisible();
+ for(const team of ['A','B','C'])await page.getByLabel(`Team ${team}’s answer`).fill('forest');await page.getByRole('button',{name:'Reveal answers and score stage'}).click();await expect(page.locator('.plan-scores').getByText('Points: 0',{exact:true})).toHaveCount(3);await page.getByRole('button',{name:'Finish practice and prepare game'}).click();await expect(page.getByRole('button',{name:'Lock words and begin round 1'})).toBeVisible();await expect(page.locator('select[aria-label^="Secret word"] option[value="forest"]')).toHaveCount(0);
 });
 test('draws advance without replay and game results show a shared leaderboard',async({page,context})=>{
  const s=newPlan();s.game=1;s.phase='play';s.matchReady=true;s.equation.phase='result';s.equation.secrets=['12+3*4=24','30-6*2=18'];s.equation.winner=null;s.bet={team:2,pick:0,amount:300};await seed(page,s);await page.getByRole('button',{name:'Record draw and next match'}).click();await expect(page.getByRole('heading',{name:'Match 2: Team A vs Team C'})).toBeVisible();

@@ -194,3 +194,11 @@ test('poker generation uses the requested weighted distribution',()=>{
  assert.deepEqual(counts,{'two-pair':250,trips:125,straight:200,flush:200,'full-house':125,'four-kind':50,'straight-flush':50});
  assert.equal(pokerDealForRoll(.25),'trips');assert.equal(pokerDealForRoll(.95),'straight-flush');
 });
+
+import {WORD_BANK,wordEnvelopes,newWord} from '../shared/plan';
+test('expanded noun choices exclude all previous secrets case-insensitively',()=>{
+ assert(WORD_BANK.length>100);assert.equal(new Set(WORD_BANK).size,WORD_BANK.length);
+ const used=['FOREST','clock','candle','mirror'];
+ for(let i=0;i<50;i++){const banks=wordEnvelopes(used);assert(banks.every(b=>b.length===5));assert.equal(new Set(banks.flat()).size,15);assert(banks.flat().every(w=>!used.map(x=>x.toLowerCase()).includes(w)));}
+ assert.deepEqual(newWord(used).usedWords,used);
+});
